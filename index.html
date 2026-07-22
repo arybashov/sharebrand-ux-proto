@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShareBrand Mini App — сравнение вариантов</title>
+<style>
+  :root {
+    --bg: #F1F1F4; --bar: #FFFFFF; --ink: #17181F; --ink-dim: #6B6D7C;
+    --line: rgba(23,24,31,0.10); --accent: #FF6A3D; --panel: #FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0B0C11; --bar:#15161D; --ink:#F1F1F5; --ink-dim:#9496A6; --line:rgba(255,255,255,0.09); --panel:#15161D; }
+  }
+  :root[data-theme="dark"] { --bg:#0B0C11; --bar:#15161D; --ink:#F1F1F5; --ink-dim:#9496A6; --line:rgba(255,255,255,0.09); --panel:#15161D; }
+  :root[data-theme="light"] { --bg:#F1F1F4; --bar:#FFFFFF; --ink:#17181F; --ink-dim:#6B6D7C; --line:rgba(23,24,31,0.10); --panel:#FFFFFF; }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--ink);
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+  header {
+    flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 12px 20px; background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  header h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  header .sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 2px; }
+  header .actions { display: flex; gap: 8px; }
+  button.tool {
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+    border-radius: 9px; padding: 8px 12px; display: flex; align-items: center; gap: 6px;
+  }
+  button.tool:hover { border-color: var(--accent); }
+  button.tool:active { transform: scale(0.97); }
+
+  .strip {
+    flex: 1 1 auto; display: flex; gap: 14px; overflow-x: auto; overflow-y: hidden;
+    padding: 16px; align-items: stretch;
+  }
+  .panel {
+    position: relative;
+    flex: 0 0 auto; width: 400px; display: flex; flex-direction: column;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  }
+  .resize-grip {
+    position: absolute; right: 3px; bottom: 3px; width: 20px; height: 20px; z-index: 5;
+    cursor: nwse-resize;
+    background-image:
+      linear-gradient(135deg, transparent 0 46%, var(--ink-dim) 46% 54%, transparent 54% 100%),
+      linear-gradient(135deg, transparent 0 66%, var(--ink-dim) 66% 74%, transparent 74% 100%);
+    opacity: 0.55;
+    border-radius: 4px;
+  }
+  .resize-grip:hover { opacity: 1; background-image:
+      linear-gradient(135deg, transparent 0 46%, var(--accent) 46% 54%, transparent 54% 100%),
+      linear-gradient(135deg, transparent 0 66%, var(--accent) 66% 74%, transparent 74% 100%);
+  }
+  .drag-overlay { position: fixed; inset: 0; z-index: 9999; cursor: nwse-resize; }
+  .panel-bar {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-bottom: 1px solid var(--line);
+  }
+  .panel-bar select {
+    flex: 1 1 auto; font-family: inherit; font-size: 12.5px; font-weight: 600;
+    border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px;
+    background: var(--bg); color: var(--ink);
+  }
+  .panel-bar .theme-toggle, .panel-bar .icon-btn {
+    flex: 0 0 auto; font-size: 12px; font-weight: 600; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink-dim); border-radius: 7px; padding: 6px 8px; cursor: pointer;
+  }
+  .panel-bar .icon-btn:hover { color: var(--ink); border-color: var(--accent); }
+  .panel iframe { flex: 1 1 auto; width: 100%; border: 0; background: var(--bg); }
+
+  .empty-hint {
+    margin: auto; text-align: center; color: var(--ink-dim); font-size: 13px; max-width: 240px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>ShareBrand Mini App — сравнение вариантов</h1>
+      <div class="sub">Каждая панель — независимый прототип. Кликай в каждой отдельно, флоу не синхронизирован.</div>
+    </div>
+    <div class="actions">
+      <button class="tool" id="addPanel">+ Добавить панель</button>
+      <button class="tool" id="resetAll">↺ Сбросить все</button>
+    </div>
+  </header>
+  <div class="strip" id="strip"></div>
+
+<script>
+(function () {
+  "use strict";
+  var PROTO_SRC = "prototype.html";
+  var VARIANTS = [
+    ["coral", "Coral · Voice (текущий)"],
+    ["native", "Telegram-native · минимализм"],
+    ["bold", "Bold · Gamified"]
+  ];
+  var strip = document.getElementById("strip");
+  var panelSeq = 0;
+
+  function panelUrl(variant, theme) {
+    var p = new URLSearchParams();
+    p.set("variant", variant);
+    p.set("embed", "1");
+    if (theme) p.set("t", theme); // cache-bust so switching theme reloads iframe cleanly
+    return PROTO_SRC + "?" + p.toString();
+  }
+
+  function makePanel(initialVariant) {
+    var id = "p" + (++panelSeq);
+    var panel = document.createElement("div");
+    panel.className = "panel";
+    panel.innerHTML =
+      '<div class="panel-bar">' +
+        '<select></select>' +
+        '<button class="icon-btn" data-act="reload" title="Перезапустить флоу">↺</button>' +
+        '<button class="icon-btn" data-act="open" title="Открыть отдельно">⤢</button>' +
+        '<button class="icon-btn" data-act="close" title="Закрыть панель">✕</button>' +
+      '</div>' +
+      '<iframe id="' + id + '" title="variant"></iframe>' +
+      '<div class="resize-grip" title="Потяните, чтобы изменить размер панели"></div>';
+    var select = panel.querySelector("select");
+    VARIANTS.forEach(function (v) {
+      var opt = document.createElement("option");
+      opt.value = v[0]; opt.textContent = v[1];
+      if (v[0] === initialVariant) opt.selected = true;
+      select.appendChild(opt);
+    });
+    var iframe = panel.querySelector("iframe");
+    function load() { iframe.src = panelUrl(select.value); }
+    select.addEventListener("change", load);
+    panel.querySelector('[data-act="reload"]').addEventListener("click", load);
+    panel.querySelector('[data-act="open"]').addEventListener("click", function () {
+      window.open(PROTO_SRC + "?variant=" + select.value, "_blank");
+    });
+    panel.querySelector('[data-act="close"]').addEventListener("click", function () {
+      panel.remove();
+    });
+    wireResize(panel, panel.querySelector(".resize-grip"));
+    load();
+    return panel;
+  }
+
+  // Drag-resize a panel from its bottom-right grip. A full-viewport overlay is
+  // added while dragging so mousemove keeps hitting this document even when the
+  // pointer crosses over an iframe (iframes otherwise swallow the events).
+  function wireResize(panel, grip) {
+    grip.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      var startX = e.clientX, startY = e.clientY;
+      var rect = panel.getBoundingClientRect();
+      var startW = rect.width, startH = rect.height;
+      var overlay = document.createElement("div");
+      overlay.className = "drag-overlay";
+      document.body.appendChild(overlay);
+
+      function onMove(ev) {
+        var w = Math.max(300, startW + (ev.clientX - startX));
+        var h = Math.max(480, startH + (ev.clientY - startY));
+        panel.style.width = w + "px";
+        panel.style.height = h + "px";
+      }
+      function onUp() {
+        overlay.remove();
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      }
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  }
+
+  document.getElementById("addPanel").addEventListener("click", function () {
+    var used = strip.querySelectorAll("select");
+    var next = VARIANTS[used.length % VARIANTS.length][0];
+    strip.appendChild(makePanel(next));
+  });
+  document.getElementById("resetAll").addEventListener("click", function () {
+    strip.querySelectorAll("iframe").forEach(function (f) { f.contentWindow.location.reload(); });
+  });
+
+  VARIANTS.forEach(function (v) { strip.appendChild(makePanel(v[0])); });
+})();
+</script>
+</body>
+</html>
