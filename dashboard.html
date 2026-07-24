@@ -7,27 +7,27 @@
 <style>
   :root {
     --bg: #F1F1F4; --bar: #FFFFFF; --ink: #17181F; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
-    --line: rgba(23,24,31,0.10); --line-strong: rgba(23,24,31,0.16); --accent: #FF6A3D;
+    --line: rgba(23,24,31,0.10); --line-strong: rgba(23,24,31,0.16); --line-fine: rgba(23,24,31,0.045); --accent: #FF6A3D;
     --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17; --panel: #FFFFFF;
     --good: #1FAE7D; --good-soft: #DCF3EA; --warn: #C77B12; --warn-soft: #FBEBD2;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg:#0B0C11; --bar:#15161D; --ink:#F1F1F5; --ink-dim:#9496A6; --ink-faint:#6D6F80;
-      --line:rgba(255,255,255,0.09); --line-strong:rgba(255,255,255,0.15); --accent:#FF7A4D;
+      --line:rgba(255,255,255,0.09); --line-strong:rgba(255,255,255,0.15); --line-fine:rgba(255,255,255,0.04); --accent:#FF7A4D;
       --accent-soft:#3A2318; --accent-soft-ink:#FFB08A; --panel:#15161D;
       --good:#34D399; --good-soft:#123527; --warn:#E3A23C; --warn-soft:#3A2A10;
     }
   }
   :root[data-theme="dark"] {
     --bg:#0B0C11; --bar:#15161D; --ink:#F1F1F5; --ink-dim:#9496A6; --ink-faint:#6D6F80;
-    --line:rgba(255,255,255,0.09); --line-strong:rgba(255,255,255,0.15); --accent:#FF7A4D;
+    --line:rgba(255,255,255,0.09); --line-strong:rgba(255,255,255,0.15); --line-fine:rgba(255,255,255,0.04); --accent:#FF7A4D;
     --accent-soft:#3A2318; --accent-soft-ink:#FFB08A; --panel:#15161D;
     --good:#34D399; --good-soft:#123527; --warn:#E3A23C; --warn-soft:#3A2A10;
   }
   :root[data-theme="light"] {
     --bg:#F1F1F4; --bar:#FFFFFF; --ink:#17181F; --ink-dim:#6B6D7C; --ink-faint:#9799A8;
-    --line:rgba(23,24,31,0.10); --line-strong:rgba(23,24,31,0.16); --accent:#FF6A3D;
+    --line:rgba(23,24,31,0.10); --line-strong:rgba(23,24,31,0.16); --line-fine:rgba(23,24,31,0.045); --accent:#FF6A3D;
     --accent-soft:#FFE3D6; --accent-soft-ink:#B23E17; --panel:#FFFFFF;
     --good:#1FAE7D; --good-soft:#DCF3EA; --warn:#C77B12; --warn-soft:#FBEBD2;
   }
@@ -86,7 +86,9 @@
     grid-auto-rows: var(--cell-h); gap: var(--gap); align-items: stretch;
     background-image:
       repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px calc(var(--cell-w) + var(--gap))),
-      repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px calc(var(--cell-h) + var(--gap)));
+      repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px calc(var(--cell-h) + var(--gap))),
+      repeating-linear-gradient(to right, var(--line-fine) 0 1px, transparent 1px 29px),
+      repeating-linear-gradient(to bottom, var(--line-fine) 0 1px, transparent 1px 29px);
     background-position: -1px -1px;
     border-radius: 14px;
   }
@@ -496,15 +498,42 @@
         var overlay = document.createElement("div");
         overlay.className = "resize-overlay";
         document.body.appendChild(overlay);
+        var lastCols = start.cols, lastRows = start.rows;
 
         function onMove(ev) {
           var dCols = Math.round((ev.clientX - startX) / (cellW + gap));
           var dRows = Math.round((ev.clientY - startY) / (cellH + gap));
           var cols = Math.min(GRID_COLS, Math.max(MIN_COLS, start.cols + dCols));
           var rows = Math.min(MAX_ROWS, Math.max(1, start.rows + dRows));
+          if (cols === lastCols && rows === lastRows) return; // hasn't crossed a cell yet — nothing to reflow
+          lastCols = cols; lastRows = rows;
+
+          // The item being dragged follows the cursor directly (no animation — that would lag
+          // the pointer). Everything ELSE that gets pushed around by this span change gets a
+          // quick glide instead of an instant jump: measure siblings, apply the new span, then
+          // animate each sibling from where it WAS to where it landed (reverse-FLIP).
+          var others = Array.prototype.slice.call(document.querySelectorAll(".grid-item"))
+            .filter(function (el) { return el !== item; });
+          var before = {};
+          others.forEach(function (el) { before[el.getAttribute("data-wid")] = el.getBoundingClientRect(); });
+
           item.style.gridColumn = "span " + cols;
           item.style.gridRow = "span " + rows;
           item.__pendingSize = { cols: cols, rows: rows };
+
+          others.forEach(function (el) {
+            var was = before[el.getAttribute("data-wid")];
+            var now = el.getBoundingClientRect();
+            var dx = was.left - now.left, dy = was.top - now.top;
+            if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+            el.style.transition = "none";
+            el.style.transform = "translate(" + dx + "px," + dy + "px)";
+            void el.offsetWidth;
+            requestAnimationFrame(function () {
+              el.style.transition = "transform 160ms ease-out";
+              el.style.transform = "";
+            });
+          });
         }
         function onUp() {
           overlay.remove();
@@ -621,8 +650,34 @@
     store.lastSizes = state.sizes;
     saveStore();
     renderPresetPills();
-    renderGrid();
+    renderGridWithFlip();
     renderDrawer();
+  }
+
+  // FLIP (First-Last-Invert-Play): measure where cards are before the rebuild, rebuild,
+  // then animate from old to new position. Only position (translate) is animated — the
+  // card being resized already grows live under the pointer; this is for the OTHERS that
+  // get pushed, so they glide into their new slot instead of jumping there instantly.
+  function renderGridWithFlip() {
+    var before = {};
+    Array.prototype.forEach.call(document.querySelectorAll(".grid-item"), function (el) {
+      before[el.getAttribute("data-wid")] = el.getBoundingClientRect();
+    });
+    renderGrid();
+    Array.prototype.forEach.call(document.querySelectorAll(".grid-item"), function (el) {
+      var was = before[el.getAttribute("data-wid")];
+      if (!was) return; // just added, nothing to animate from
+      var now = el.getBoundingClientRect();
+      var dx = was.left - now.left, dy = was.top - now.top;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+      el.style.transition = "none";
+      el.style.transform = "translate(" + dx + "px," + dy + "px)";
+      void el.offsetWidth; // force the browser to register the start position before animating away
+      requestAnimationFrame(function () {
+        el.style.transition = "transform 220ms cubic-bezier(.2,.8,.2,1)";
+        el.style.transform = "";
+      });
+    });
   }
 
   el("#customizeBtn").addEventListener("click", function () { el("#drawerBackdrop").classList.add("show"); });
