@@ -573,13 +573,14 @@
         function onUp() {
           overlay.remove();
           ghost.remove();
-          item.style.width = "";
-          item.style.height = "";
           item.classList.remove("resizing");
           window.removeEventListener("pointermove", onMove);
           window.removeEventListener("pointerup", onUp);
           if (item.__pendingSize) {
             state.layout[id] = { x: start.x, y: start.y, cols: item.__pendingSize.cols, rows: item.__pendingSize.rows };
+            // Don't clear item.style.width/height here — renderGridWithFlip is about to measure
+            // this element's CURRENT (release-point) rect as the animation's start position,
+            // then rebuild it. Clearing first would snap it back to the old size for a frame.
             persistAndRender();
           }
         }
@@ -634,13 +635,14 @@
         function onUp() {
           overlay.remove();
           ghost.remove();
-          item.style.left = "";
-          item.style.top = "";
           item.classList.remove("moving");
           window.removeEventListener("pointermove", onMove);
           window.removeEventListener("pointerup", onUp);
           if (item.__pendingPos) {
             state.layout[id] = { x: item.__pendingPos.x, y: item.__pendingPos.y, cols: start.cols, rows: start.rows };
+            // Don't clear item.style.left/top here — renderGridWithFlip measures this element's
+            // CURRENT (release-point) rect as the animation's start, then rebuilds. Clearing
+            // first would snap it back to the pre-drag spot for a frame before animating away.
             persistAndRender();
           }
         }
