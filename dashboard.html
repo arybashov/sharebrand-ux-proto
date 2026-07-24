@@ -77,13 +77,14 @@
 
   .body-row { flex: 1 1 auto; display: flex; overflow: hidden; }
   .grid-wrap { flex: 1 1 auto; overflow-y: auto; padding: 18px 20px 40px; }
-  /* Fixed 6-col grid with a fixed row height — this is what makes "size in whole cells"
-     meaningful. --cell-w is kept in sync with the actual rendered column width by JS
-     (ResizeObserver) so the drawn grid lines and the resize-snap math always agree. */
+  /* NOT CSS grid on purpose: each card is independently positioned (position:absolute,
+     left/top/width/height in px) so moving or resizing one never reflows any other — they
+     aren't coupled into shared rows/columns. The drawn grid (below) is purely a visual/snap
+     guide; --cell-w is kept in sync with the actual rendered width by JS (ResizeObserver) so
+     the lines and the snap math always agree. */
   .grid {
+    position: relative;
     --cols: 6; --cell-w: 100px; --cell-h: 116px; --gap: 12px;
-    display: grid; grid-template-columns: repeat(var(--cols), 1fr);
-    grid-auto-rows: var(--cell-h); gap: var(--gap); align-items: stretch;
     background-image:
       repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px calc(var(--cell-w) + var(--gap))),
       repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px calc(var(--cell-h) + var(--gap))),
@@ -92,22 +93,19 @@
     background-position: -1px -1px;
     border-radius: 14px;
   }
-  .grid.empty { display: flex; background-image: none; }
+  .grid.empty { display: flex; min-height: 200px; background-image: none; }
 
   .grid-item {
-    position: relative; cursor: grab; border-radius: 14px; overflow: hidden;
-    grid-column: span 2; grid-row: span 2;
+    position: absolute; border-radius: 14px; overflow: hidden;
   }
   .grid-item .card { height: 100%; overflow: auto; }
-  .grid-item:active { cursor: grabbing; }
   .grid-item .drag-handle {
     position: absolute; top: 10px; right: 12px; font-size: 14px; color: var(--ink-faint);
-    opacity: 0; transition: opacity 0.15s ease; pointer-events: none; z-index: 2;
+    opacity: 0; transition: opacity 0.15s ease; z-index: 2; cursor: grab;
   }
+  .grid-item .drag-handle:active { cursor: grabbing; }
   .grid-item:hover .drag-handle { opacity: 1; }
-  .grid-item.dragging { opacity: 0.35; }
-  .grid-item.drag-over { outline: 2px dashed var(--accent); outline-offset: 3px; }
-  .grid-item.resizing { z-index: 20; box-shadow: 0 8px 24px -6px rgba(0,0,0,0.35); }
+  .grid-item.resizing, .grid-item.moving { z-index: 20; box-shadow: 0 8px 24px -6px rgba(0,0,0,0.35); }
 
   .size-handle {
     position: absolute; right: 2px; bottom: 2px; width: 18px; height: 18px; z-index: 2;
@@ -378,7 +376,7 @@
     creatives_status: { cols: 3, rows: 2 }, conversions_status: { cols: 3, rows: 2 }, funnel: { cols: 3, rows: 3 },
     reconciliation: { cols: 3, rows: 2 }, fraud_queue: { cols: 3, rows: 2 }, payouts: { cols: 3, rows: 2 }
   };
-  var GRID_COLS = 6, MIN_COLS = 2, MAX_ROWS = 5;
+  var GRID_COLS = 6, MIN_COLS = 1, MAX_ROWS = 5, CELL_H = 116, GAP = 12;
 
   var BUILTIN_PRESETS = [
     { id: "overview", name: "Общий обзор", builtin: true, widgets: ["stat_users","stat_brands","stat_campaigns","stat_published","stat_conversions","stat_balance","creatives_status","conversions_status","reconciliation"] },
@@ -391,7 +389,7 @@
       var raw = localStorage.getItem(STORE_KEY);
       if (raw) return JSON.parse(raw);
     } catch (e) {}
-    return { customPresets: [], lastActivePreset: "overview", lastWidgets: null, lastSizes: {} };
+    return { customPresets: [], lastActivePreset: "overview", lastWidgets: null, lastLayout: {} };
   }
   function saveStore() {
     localStorage.setItem(STORE_KEY, JSON.stringify(store));
@@ -401,11 +399,38 @@
   var state = {
     activePresetId: store.lastActivePreset || "overview",
     widgets: store.lastWidgets || BUILTIN_PRESETS[0].widgets.slice(),
-    sizes: store.lastSizes || {}
+    layout: store.lastLayout || {}
   };
 
-  function sizeFor(id) {
-    return state.sizes[id] || DEFAULT_SIZES[id] || { cols: 2, rows: 2 };
+  function layoutFor(id) { return state.layout[id]; }
+
+  // Each widget gets an independent {x,y,cols,rows} in grid-cell units. Moving/resizing one
+  // never touches another's entry — that's the whole point (no shared rows/columns to couple
+  // them together). New widgets are auto-placed into the first free gap that doesn't overlap
+  // anything already positioned; existing widgets are never moved to make room.
+  function collides(layout, skipId, x, y, cols, rows) {
+    return Object.keys(layout).some(function (k) {
+      if (k === skipId) return false;
+      var o = layout[k];
+      return x < o.x + o.cols && x + cols > o.x && y < o.y + o.rows && y + rows > o.y;
+    });
+  }
+  function packInto(layout, id) {
+    var sz = DEFAULT_SIZES[id] || { cols: 2, rows: 2 };
+    for (var y = 0; y < 300; y++) {
+      for (var x = 0; x <= GRID_COLS - sz.cols; x++) {
+        if (!collides(layout, id, x, y, sz.cols, sz.rows)) {
+          layout[id] = { x: x, y: y, cols: sz.cols, rows: sz.rows };
+          return;
+        }
+      }
+    }
+    layout[id] = { x: 0, y: 300, cols: sz.cols, rows: sz.rows };
+  }
+  function ensureLayout() {
+    state.widgets.forEach(function (id) {
+      if (!state.layout[id]) packInto(state.layout, id);
+    });
   }
 
   function allPresets() { return BUILTIN_PRESETS.concat(store.customPresets); }
@@ -435,7 +460,7 @@
         var p = findPreset(btn.getAttribute("data-preset"));
         state.activePresetId = p.id;
         state.widgets = p.widgets.slice();
-        state.sizes = p.sizes ? JSON.parse(JSON.stringify(p.sizes)) : {};
+        state.layout = p.layout ? JSON.parse(JSON.stringify(p.layout)) : {};
         persistAndRender();
       });
     });
@@ -445,21 +470,29 @@
     var grid = el("#grid");
     if (state.widgets.length === 0) {
       grid.className = "grid empty";
+      grid.style.height = "";
       grid.innerHTML = '<div class="empty-hint">Нет ни одного виджета. Открой «⚙️ Настроить» и добавь хотя бы один.</div>';
       return;
     }
+    ensureLayout();
     grid.className = "grid";
+    var maxBottom = 0;
     grid.innerHTML = state.widgets.map(function (id) {
       if (!WIDGETS[id]) return "";
-      var sz = sizeFor(id);
-      var style = "grid-column:span " + sz.cols + ";grid-row:span " + sz.rows + ";";
-      return '<div class="grid-item" draggable="true" data-wid="' + id + '" style="' + style + '">' +
+      var L = state.layout[id];
+      maxBottom = Math.max(maxBottom, L.y + L.rows);
+      var style = "left:calc(" + L.x + " * (var(--cell-w) + var(--gap)));" +
+        "top:" + (L.y * (CELL_H + GAP)) + "px;" +
+        "width:calc(" + L.cols + " * var(--cell-w) + " + (L.cols - 1) + " * var(--gap));" +
+        "height:" + (L.rows * CELL_H + (L.rows - 1) * GAP) + "px;";
+      return '<div class="grid-item" data-wid="' + id + '" style="' + style + '">' +
         '<span class="drag-handle" title="Перетащить">⠿</span>' +
         WIDGETS[id].render() +
         '<span class="size-handle" title="Потяните, чтобы изменить размер"></span>' +
         "</div>";
     }).join("");
-    wireGridDnd();
+    grid.style.height = (maxBottom * CELL_H + Math.max(0, maxBottom - 1) * GAP) + "px";
+    wireMoveHandles();
     wireSizeHandles();
     syncCellWidth();
   }
@@ -486,6 +519,8 @@
   // Drag from the bottom-right handle to resize a card; size snaps to whole grid cells
   // (uses the same --cell-w the background grid lines are drawn with, so it visually "clicks"
   // into place). A full-viewport overlay keeps mousemove flowing even over iframes/other cards.
+  // Position (x,y) never changes here, and no other widget's layout entry is touched — resizing
+  // one card cannot move any other.
   function wireSizeHandles() {
     Array.prototype.forEach.call(document.querySelectorAll(".grid-item"), function (item) {
       var handle = item.querySelector(".size-handle");
@@ -493,21 +528,18 @@
       handle.addEventListener("pointerdown", function (e) {
         e.preventDefault();
         e.stopPropagation();
-        item.setAttribute("draggable", "false"); // don't let native DnD hijack the resize drag
         item.classList.add("resizing");
         var startX = e.clientX, startY = e.clientY;
-        var start = sizeFor(id);
+        var start = layoutFor(id);
         var cellW = parseFloat(getComputedStyle(el("#grid")).getPropertyValue("--cell-w")) || 100;
-        var cellH = 116, gap = 12;
         var overlay = document.createElement("div");
         overlay.className = "resize-overlay";
         document.body.appendChild(overlay);
 
         // The card itself grows/shrinks smoothly in raw pixels, following the cursor 1:1 —
-        // it visually escapes its grid track (no reflow of siblings while dragging, so nothing
-        // jumps). A dashed ghost shows the grid-snapped target the whole time. Only on release
-        // does the real span change and siblings actually move (persistAndRender's FLIP handles
-        // that single, final reflow smoothly).
+        // it visually escapes its own cell (nothing else on the board reacts). A dashed ghost
+        // shows the grid-snapped target the whole time. Only on release does the committed
+        // size change to the snapped value.
         var startRect = item.getBoundingClientRect();
         item.style.width = startRect.width + "px";
         item.style.height = startRect.height + "px";
@@ -517,31 +549,30 @@
         document.body.appendChild(ghost);
 
         function onMove(ev) {
-          var rawW = Math.max(cellW, startRect.width + (ev.clientX - startX));
-          var rawH = Math.max(cellH, startRect.height + (ev.clientY - startY));
+          var rawW = Math.max(cellW * MIN_COLS + GAP * (MIN_COLS - 1), startRect.width + (ev.clientX - startX));
+          var rawH = Math.max(CELL_H, startRect.height + (ev.clientY - startY));
           item.style.width = rawW + "px";
           item.style.height = rawH + "px";
 
-          var cols = Math.min(GRID_COLS, Math.max(MIN_COLS, Math.round((rawW + gap) / (cellW + gap))));
-          var rows = Math.min(MAX_ROWS, Math.max(1, Math.round((rawH + gap) / (cellH + gap))));
+          var cols = Math.min(GRID_COLS - start.x, Math.max(MIN_COLS, Math.round((rawW + GAP) / (cellW + GAP))));
+          var rows = Math.min(MAX_ROWS, Math.max(1, Math.round((rawH + GAP) / (CELL_H + GAP))));
           item.__pendingSize = { cols: cols, rows: rows };
 
           ghost.style.left = startRect.left + "px";
           ghost.style.top = startRect.top + "px";
-          ghost.style.width = (cols * cellW + (cols - 1) * gap) + "px";
-          ghost.style.height = (rows * cellH + (rows - 1) * gap) + "px";
+          ghost.style.width = (cols * cellW + (cols - 1) * GAP) + "px";
+          ghost.style.height = (rows * CELL_H + (rows - 1) * GAP) + "px";
         }
         function onUp() {
           overlay.remove();
           ghost.remove();
           item.style.width = "";
           item.style.height = "";
-          item.setAttribute("draggable", "true");
           item.classList.remove("resizing");
           window.removeEventListener("pointermove", onMove);
           window.removeEventListener("pointerup", onUp);
           if (item.__pendingSize) {
-            state.sizes[id] = item.__pendingSize;
+            state.layout[id] = { x: start.x, y: start.y, cols: item.__pendingSize.cols, rows: item.__pendingSize.rows };
             persistAndRender();
           }
         }
@@ -551,37 +582,63 @@
     });
   }
 
-  // Native HTML5 drag-and-drop to reorder cards directly on the dashboard.
-  function wireGridDnd() {
-    var items = Array.prototype.slice.call(document.querySelectorAll(".grid-item"));
-    var dragId = null;
-    items.forEach(function (item) {
-      item.addEventListener("dragstart", function (e) {
-        dragId = item.getAttribute("data-wid");
-        item.classList.add("dragging");
-        e.dataTransfer.effectAllowed = "move";
-        try { e.dataTransfer.setData("text/plain", dragId); } catch (err) {}
-      });
-      item.addEventListener("dragend", function () {
-        item.classList.remove("dragging");
-        items.forEach(function (i) { i.classList.remove("drag-over"); });
-      });
-      item.addEventListener("dragover", function (e) {
+  // Drag from the ⠿ handle to move a card to a new (x,y). Snaps to whole grid cells on
+  // release. No collision handling on purpose — cards are independent, so dropping one on
+  // top of another is allowed rather than auto-rearranging anything.
+  function wireMoveHandles() {
+    Array.prototype.forEach.call(document.querySelectorAll(".grid-item"), function (item) {
+      var handle = item.querySelector(".drag-handle");
+      var id = item.getAttribute("data-wid");
+      handle.addEventListener("pointerdown", function (e) {
         e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        if (item.getAttribute("data-wid") !== dragId) item.classList.add("drag-over");
-      });
-      item.addEventListener("dragleave", function () { item.classList.remove("drag-over"); });
-      item.addEventListener("drop", function (e) {
-        e.preventDefault();
-        item.classList.remove("drag-over");
-        var targetId = item.getAttribute("data-wid");
-        if (!dragId || dragId === targetId) return;
-        var from = state.widgets.indexOf(dragId), to = state.widgets.indexOf(targetId);
-        if (from === -1 || to === -1) return;
-        state.widgets.splice(from, 1);
-        state.widgets.splice(to, 0, dragId);
-        persistAndRender();
+        e.stopPropagation();
+        item.classList.add("moving");
+        var startX = e.clientX, startY = e.clientY;
+        var start = layoutFor(id);
+        var cellW = parseFloat(getComputedStyle(el("#grid")).getPropertyValue("--cell-w")) || 100;
+        var gridRect = el("#grid").getBoundingClientRect();
+        var startRect = item.getBoundingClientRect();
+        var overlay = document.createElement("div");
+        overlay.className = "resize-overlay";
+        overlay.style.cursor = "grabbing";
+        document.body.appendChild(overlay);
+
+        var ghost = document.createElement("div");
+        ghost.className = "size-ghost";
+        document.body.appendChild(ghost);
+
+        function onMove(ev) {
+          var rawLeft = startRect.left + (ev.clientX - startX);
+          var rawTop = startRect.top + (ev.clientY - startY);
+          item.style.left = (rawLeft - gridRect.left) + "px";
+          item.style.top = (rawTop - gridRect.top) + "px";
+
+          var x = Math.round((rawLeft - gridRect.left) / (cellW + GAP));
+          var y = Math.round((rawTop - gridRect.top) / (CELL_H + GAP));
+          x = Math.min(GRID_COLS - start.cols, Math.max(0, x));
+          y = Math.max(0, y);
+          item.__pendingPos = { x: x, y: y };
+
+          ghost.style.left = (gridRect.left + x * (cellW + GAP)) + "px";
+          ghost.style.top = (gridRect.top + y * (CELL_H + GAP)) + "px";
+          ghost.style.width = (start.cols * cellW + (start.cols - 1) * GAP) + "px";
+          ghost.style.height = (start.rows * CELL_H + (start.rows - 1) * GAP) + "px";
+        }
+        function onUp() {
+          overlay.remove();
+          ghost.remove();
+          item.style.left = "";
+          item.style.top = "";
+          item.classList.remove("moving");
+          window.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onUp);
+          if (item.__pendingPos) {
+            state.layout[id] = { x: item.__pendingPos.x, y: item.__pendingPos.y, cols: start.cols, rows: start.rows };
+            persistAndRender();
+          }
+        }
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
       });
     });
   }
@@ -644,9 +701,10 @@
   }
 
   function persistAndRender() {
+    ensureLayout(); // pack any newly-added widget BEFORE saving, not after
     store.lastActivePreset = state.activePresetId;
     store.lastWidgets = state.widgets;
-    store.lastSizes = state.sizes;
+    store.lastLayout = state.layout;
     saveStore();
     renderPresetPills();
     renderGridWithFlip();
@@ -687,7 +745,7 @@
     var name = prompt("Название пресета:", "Мой набор");
     if (!name) return;
     var id = "custom_" + Date.now();
-    store.customPresets.push({ id: id, name: name, builtin: false, widgets: state.widgets.slice(), sizes: JSON.parse(JSON.stringify(state.sizes)) });
+    store.customPresets.push({ id: id, name: name, builtin: false, widgets: state.widgets.slice(), layout: JSON.parse(JSON.stringify(state.layout)) });
     state.activePresetId = id;
     persistAndRender();
   });
@@ -698,13 +756,13 @@
     store.customPresets = store.customPresets.filter(function (x) { return x.id !== p.id; });
     state.activePresetId = "overview";
     state.widgets = BUILTIN_PRESETS[0].widgets.slice();
-    state.sizes = {};
+    state.layout = {};
     persistAndRender();
   });
   el("#resetBtn").addEventListener("click", function () {
     localStorage.removeItem(STORE_KEY);
     store = loadStore();
-    state = { activePresetId: "overview", widgets: BUILTIN_PRESETS[0].widgets.slice(), sizes: {} };
+    state = { activePresetId: "overview", widgets: BUILTIN_PRESETS[0].widgets.slice(), layout: {} };
     persistAndRender();
   });
 
