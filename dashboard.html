@@ -10,6 +10,12 @@
     --line: rgba(23,24,31,0.10); --line-strong: rgba(23,24,31,0.16); --line-fine: rgba(23,24,31,0.045); --accent: #FF6A3D;
     --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17; --panel: #FFFFFF;
     --good: #1FAE7D; --good-soft: #DCF3EA; --warn: #C77B12; --warn-soft: #FBEBD2;
+    /* Categorical series (dataviz skill palette.md, fixed order — never cycled/resorted) */
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+    --series-5: #e87ba4; --series-6: #008300;
+    /* Sequential ramp (ordinal use — funnel stages), same hex both themes per palette.md */
+    --seq-1: #cde2fb; --seq-2: #b7d3f6; --seq-3: #9ec5f4; --seq-4: #86b6ef; --seq-5: #6da7ec;
+    --seq-6: #5598e7; --seq-7: #3987e5; --seq-8: #2a78d6; --seq-9: #256abf; --seq-10: #1c5cab;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -17,6 +23,8 @@
       --line:rgba(255,255,255,0.09); --line-strong:rgba(255,255,255,0.15); --line-fine:rgba(255,255,255,0.04); --accent:#FF7A4D;
       --accent-soft:#3A2318; --accent-soft-ink:#FFB08A; --panel:#15161D;
       --good:#34D399; --good-soft:#123527; --warn:#E3A23C; --warn-soft:#3A2A10;
+      --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+      --series-5: #d55181; --series-6: #008300;
     }
   }
   :root[data-theme="dark"] {
@@ -24,12 +32,16 @@
     --line:rgba(255,255,255,0.09); --line-strong:rgba(255,255,255,0.15); --line-fine:rgba(255,255,255,0.04); --accent:#FF7A4D;
     --accent-soft:#3A2318; --accent-soft-ink:#FFB08A; --panel:#15161D;
     --good:#34D399; --good-soft:#123527; --warn:#E3A23C; --warn-soft:#3A2A10;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+    --series-5: #d55181; --series-6: #008300;
   }
   :root[data-theme="light"] {
     --bg:#F1F1F4; --bar:#FFFFFF; --ink:#17181F; --ink-dim:#6B6D7C; --ink-faint:#9799A8;
     --line:rgba(23,24,31,0.10); --line-strong:rgba(23,24,31,0.16); --line-fine:rgba(23,24,31,0.045); --accent:#FF6A3D;
     --accent-soft:#FFE3D6; --accent-soft-ink:#B23E17; --panel:#FFFFFF;
     --good:#1FAE7D; --good-soft:#DCF3EA; --warn:#C77B12; --warn-soft:#FBEBD2;
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+    --series-5: #e87ba4; --series-6: #008300;
   }
 
   * { box-sizing: border-box; }
@@ -175,6 +187,41 @@
   .funnel-row .fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-soft-ink)); }
   .funnel-row .val { width: 22px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
 
+  /* ============ Chart-type menu (bars / pie / donut) ============ */
+  .chart-menu-btn {
+    position: absolute; top: 8px; right: 34px; z-index: 4; width: 22px; height: 22px;
+    border: 0; background: none; color: var(--ink-faint); font-size: 15px; cursor: pointer;
+    border-radius: 6px; opacity: 0; transition: opacity 0.15s ease;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .grid-item:hover .chart-menu-btn, .chart-menu-btn.open { opacity: 1; }
+  .chart-menu-btn:hover { background: var(--line); color: var(--ink); }
+  .chart-menu {
+    position: absolute; top: 32px; right: 12px; z-index: 6; min-width: 132px;
+    background: var(--panel); border: 1px solid var(--line-strong); border-radius: 10px;
+    box-shadow: 0 10px 24px -8px rgba(0,0,0,0.3); padding: 4px; display: none;
+  }
+  .chart-menu.open { display: block; }
+  .chart-menu button {
+    display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+    background: none; border: 0; font-family: inherit; font-size: 12.5px; font-weight: 600;
+    color: var(--ink); padding: 7px 9px; border-radius: 7px; cursor: pointer;
+  }
+  .chart-menu button:hover { background: var(--line); }
+  .chart-menu button.active { color: var(--accent-soft-ink); background: var(--accent-soft); }
+  .chart-menu button .ic { width: 14px; text-align: center; font-size: 13px; }
+
+  /* Pie/donut: CSS conic-gradient disc, legend always present (dataviz skill: identity is
+     never color-alone) — swatch + label + value, text stays in ink tokens, never series color. */
+  .pie-wrap { display: flex; align-items: center; gap: 16px; }
+  .pie-disc { flex: 0 0 auto; width: 88px; height: 88px; border-radius: 50%; }
+  .pie-disc.donut { mask: radial-gradient(circle, transparent 56%, #000 57%); -webkit-mask: radial-gradient(circle, transparent 56%, #000 57%); }
+  .pie-legend { flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .pie-legend-row { display: flex; align-items: center; gap: 7px; font-size: 12px; }
+  .pie-legend-row .swatch { width: 9px; height: 9px; border-radius: 3px; flex: 0 0 auto; }
+  .pie-legend-row .lbl { color: var(--ink-dim); flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pie-legend-row .v { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+
   /* ============ Customize drawer ============ */
   .drawer-backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 40;
@@ -299,17 +346,56 @@
       '<div class="stat-value' + (good ? " good" : "") + '">' + value + '</div>' +
       (sub ? '<div class="stat-sub">' + sub + '</div>' : "") + '</div>';
   }
-  function barsCard(title, rows, footer) {
-    var max = Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([1]));
-    var html = '<div class="card"><div class="card-title">' + title + '</div><div class="bars">' +
-      rows.map(function (r) {
-        return '<div class="bar-row"><span class="label">' + r[0] + '</span>' +
-          '<span class="track"><span class="fill" style="width:' + (r[1] / max * 100) + '%"></span></span>' +
-          '<span class="val">' + r[1] + '</span></div>';
-      }).join("") + "</div>";
+  function barsInner(rows, max) {
+    return '<div class="bars">' + rows.map(function (r) {
+      return '<div class="bar-row"><span class="label">' + r[0] + '</span>' +
+        '<span class="track"><span class="fill" style="width:' + (r[1] / max * 100) + '%"></span></span>' +
+        '<span class="val">' + r[1] + '</span></div>';
+    }).join("") + "</div>";
+  }
+  // Conic-gradient disc (pie, or donut via a CSS mask) + a legend that's always present —
+  // identity is never color-alone (dataviz skill). Colors come in fixed order, never resorted
+  // by value, per a category's own palette (categorical slots, or the sequential ramp for
+  // ordinal data like funnel stages).
+  function pieInner(rows, colors, donut, total) {
+    var acc = 0;
+    var stops = rows.map(function (r, i) {
+      var start = acc / total * 360; acc += r[1];
+      var end = acc / total * 360;
+      return "var(" + colors[i % colors.length] + ") " + start.toFixed(1) + "deg " + end.toFixed(1) + "deg";
+    }).join(", ");
+    return '<div class="pie-wrap">' +
+      '<div class="pie-disc' + (donut ? " donut" : "") + '" style="background:conic-gradient(' + stops + ')"></div>' +
+      '<div class="pie-legend">' + rows.map(function (r, i) {
+        return '<div class="pie-legend-row"><span class="swatch" style="background:var(' + colors[i % colors.length] + ')"></span>' +
+          '<span class="lbl">' + r[0] + '</span><span class="v">' + r[1] + "</span></div>";
+      }).join("") + "</div></div>";
+  }
+  var CHART_MENU_OPTS = [["bars", "▤", "Столбики"], ["pie", "◕", "Пирог"], ["donut", "◔", "Кольцо"]];
+  function chartMenuHtml(id, active) {
+    return '<button class="chart-menu-btn" data-chart-toggle="' + id + '" title="Тип графика">⋮</button>' +
+      '<div class="chart-menu" data-chart-menu="' + id + '">' +
+        CHART_MENU_OPTS.map(function (o) {
+          return '<button data-chart-set="' + id + '" data-type="' + o[0] + '" class="' + (o[0] === active ? "active" : "") + '">' +
+            '<span class="ic">' + o[1] + "</span>" + o[2] + "</button>";
+        }).join("") +
+      "</div>";
+  }
+  // Shared renderer for the three "Графики" widgets — dispatches on the widget's own saved
+  // chart type (default bars). Colors: fixed categorical slots for identity data, the
+  // sequential ramp for ordinal data (funnel stages) — per the dataviz skill's color-by-job rule.
+  function chartCard(id, title, rows, colors, footer) {
+    var type = (state.chartType[id]) || "bars";
+    var total = rows.reduce(function (s, r) { return s + r[1]; }, 0) || 1;
+    var body = type === "bars"
+      ? barsInner(rows, Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([1])))
+      : pieInner(rows, colors, type === "donut", total);
+    var html = '<div class="card">' + chartMenuHtml(id, type) + '<div class="card-title">' + title + "</div>" + body;
     if (footer) html += '<div class="stat-sub" style="margin-top:2px">' + footer + "</div>";
     return html + "</div>";
   }
+  var CATEGORICAL_6 = ["--series-1", "--series-2", "--series-3", "--series-4", "--series-5", "--series-6"];
+  var SEQUENTIAL_10 = ["--seq-1","--seq-2","--seq-3","--seq-4","--seq-5","--seq-6","--seq-7","--seq-8","--seq-9","--seq-10"];
 
   var WIDGETS = {
     stat_users: { group: "Метрики", title: "Пользователи", render: function () {
@@ -330,26 +416,30 @@
     stat_balance: { group: "Метрики", title: "AI-баланс", render: function () {
       return statCard("AI-баланс", OV.ledger.total_credits + " BYN", OV.ledger.accruals + " начислений");
     }},
-    creatives_status: { group: "Графики", title: "Креативы по статусам", render: function () {
-      return barsCard("Креативы по статусам", [
+    creatives_status: { group: "Графики", title: "Креативы по статусам", chartable: true, render: function () {
+      return chartCard("creatives_status", "Креативы по статусам", [
         ["published", OV.creatives.published], ["pending", OV.creatives.pending],
         ["rejected", OV.creatives.rejected], ["approved", OV.creatives.approved],
         ["sent", OV.creatives.sent], ["failed", OV.creatives.failed]
-      ]);
+      ], CATEGORICAL_6);
     }},
-    conversions_status: { group: "Графики", title: "Конверсии по статусам", render: function () {
-      return barsCard("Конверсии", [
+    conversions_status: { group: "Графики", title: "Конверсии по статусам", chartable: true, render: function () {
+      return chartCard("conversions_status", "Конверсии", [
         ["confirmed", OV.conversions.confirmed], ["refunded", OV.conversions.refunded], ["hold", OV.conversions.hold]
-      ], "Сумма конверсий: <strong>" + OV.conversions.total_byn + " BYN</strong>");
+      ], CATEGORICAL_6, "Сумма конверсий: <strong>" + OV.conversions.total_byn + " BYN</strong>");
     }},
-    funnel: { group: "Графики", title: "Воронка L0–L9", render: function () {
-      var max = Math.max.apply(null, FUNNEL.map(function (f) { return f[2]; }));
-      return '<div class="card"><div class="card-title">Воронка L0–L9</div><div class="bars">' +
-        FUNNEL.map(function (f) {
-          return '<div class="funnel-row"><span class="label">' + f[0] + '</span>' +
-            '<span class="track"><span class="fill" style="width:' + (f[2] / max * 100) + '%"></span></span>' +
-            '<span class="val">' + f[2] + '</span></div>';
-        }).join("") + "</div></div>";
+    funnel: { group: "Графики", title: "Воронка L0–L9", chartable: true, render: function () {
+      var type = state.chartType.funnel || "bars";
+      if (type === "bars") {
+        var max = Math.max.apply(null, FUNNEL.map(function (f) { return f[2]; }));
+        return '<div class="card">' + chartMenuHtml("funnel", "bars") + '<div class="card-title">Воронка L0–L9</div><div class="bars">' +
+          FUNNEL.map(function (f) {
+            return '<div class="funnel-row"><span class="label">' + f[0] + '</span>' +
+              '<span class="track"><span class="fill" style="width:' + (f[2] / max * 100) + '%"></span></span>' +
+              '<span class="val">' + f[2] + '</span></div>';
+          }).join("") + "</div></div>";
+      }
+      return chartCard("funnel", "Воронка L0–L9", FUNNEL.map(function (f) { return [f[0], f[2]]; }), SEQUENTIAL_10);
     }},
     reconciliation: { group: "Таблицы", title: "Сверка публикаций ↔ конверсии", render: function () {
       return '<div class="card"><div class="card-title">Сверка публикаций ↔ конверсии (G4)</div><table>' +
@@ -396,7 +486,7 @@
       var raw = localStorage.getItem(STORE_KEY);
       if (raw) return JSON.parse(raw);
     } catch (e) {}
-    return { customPresets: [], lastActivePreset: "overview", lastWidgets: null, lastLayout: {} };
+    return { customPresets: [], lastActivePreset: "overview", lastWidgets: null, lastLayout: {}, lastChartType: {} };
   }
   function saveStore() {
     localStorage.setItem(STORE_KEY, JSON.stringify(store));
@@ -406,7 +496,10 @@
   var state = {
     activePresetId: store.lastActivePreset || "overview",
     widgets: store.lastWidgets || BUILTIN_PRESETS[0].widgets.slice(),
-    layout: store.lastLayout || {}
+    layout: store.lastLayout || {},
+    // Chart type (bars/pie/donut) is global per widget, independent of which preset is active —
+    // if you like "conversions" as a donut, that's true wherever it shows up.
+    chartType: store.lastChartType || {}
   };
 
   function layoutFor(id) { return state.layout[id]; }
@@ -501,6 +594,7 @@
     grid.style.height = (maxBottom * CELL_H + Math.max(0, maxBottom - 1) * GAP) + "px";
     wireMoveHandles();
     wireSizeHandles();
+    wireChartMenus();
     syncCellWidth();
   }
 
@@ -648,6 +742,37 @@
         }
         window.addEventListener("pointermove", onMove);
         window.addEventListener("pointerup", onUp);
+      });
+    });
+  }
+
+  function closeAllChartMenus() {
+    Array.prototype.forEach.call(document.querySelectorAll(".chart-menu.open"), function (m) { m.classList.remove("open"); });
+    Array.prototype.forEach.call(document.querySelectorAll(".chart-menu-btn.open"), function (b) { b.classList.remove("open"); });
+  }
+  document.addEventListener("click", closeAllChartMenus);
+
+  // Bars vs. pie vs. donut, per widget — global setting (not tied to which preset is active).
+  function wireChartMenus() {
+    Array.prototype.forEach.call(document.querySelectorAll(".chart-menu-btn"), function (btn) {
+      btn.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var id = btn.getAttribute("data-chart-toggle");
+        var menu = document.querySelector('.chart-menu[data-chart-menu="' + id + '"]');
+        var wasOpen = menu.classList.contains("open");
+        closeAllChartMenus();
+        if (!wasOpen) { menu.classList.add("open"); btn.classList.add("open"); }
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-chart-set]"), function (btn) {
+      btn.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        state.chartType[btn.getAttribute("data-chart-set")] = btn.getAttribute("data-type");
+        store.lastChartType = state.chartType;
+        saveStore();
+        renderGrid(); // content-only change — no FLIP needed, nothing moved or resized
       });
     });
   }
