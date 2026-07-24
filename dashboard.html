@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShareBrand Ops-дашборд — настраиваемый прототип</title>
+<style>
+  :root {
+    --bg: #F1F1F4; --bar: #FFFFFF; --ink: #17181F; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
+    --line: rgba(23,24,31,0.10); --line-strong: rgba(23,24,31,0.16); --accent: #FF6A3D;
+    --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17; --panel: #FFFFFF;
+    --good: #1FAE7D; --good-soft: #DCF3EA; --warn: #C77B12; --warn-soft: #FBEBD2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#0B0C11; --bar:#15161D; --ink:#F1F1F5; --ink-dim:#9496A6; --ink-faint:#6D6F80;
+      --line:rgba(255,255,255,0.09); --line-strong:rgba(255,255,255,0.15); --accent:#FF7A4D;
+      --accent-soft:#3A2318; --accent-soft-ink:#FFB08A; --panel:#15161D;
+      --good:#34D399; --good-soft:#123527; --warn:#E3A23C; --warn-soft:#3A2A10;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0B0C11; --bar:#15161D; --ink:#F1F1F5; --ink-dim:#9496A6; --ink-faint:#6D6F80;
+    --line:rgba(255,255,255,0.09); --line-strong:rgba(255,255,255,0.15); --accent:#FF7A4D;
+    --accent-soft:#3A2318; --accent-soft-ink:#FFB08A; --panel:#15161D;
+    --good:#34D399; --good-soft:#123527; --warn:#E3A23C; --warn-soft:#3A2A10;
+  }
+  :root[data-theme="light"] {
+    --bg:#F1F1F4; --bar:#FFFFFF; --ink:#17181F; --ink-dim:#6B6D7C; --ink-faint:#9799A8;
+    --line:rgba(23,24,31,0.10); --line-strong:rgba(23,24,31,0.16); --accent:#FF6A3D;
+    --accent-soft:#FFE3D6; --accent-soft-ink:#B23E17; --panel:#FFFFFF;
+    --good:#1FAE7D; --good-soft:#DCF3EA; --warn:#C77B12; --warn-soft:#FBEBD2;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--ink);
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+  .site-tabs { flex: 0 0 auto; display: flex; gap: 4px; padding: 10px 20px 0; background: var(--bar); }
+  .site-tabs a {
+    font-size: 12.5px; font-weight: 700; text-decoration: none; color: var(--ink-dim);
+    padding: 8px 14px; border-radius: 8px 8px 0 0;
+  }
+  .site-tabs a.active { color: var(--ink); background: var(--bg); }
+  .site-tabs a:hover:not(.active) { color: var(--ink); }
+
+  header {
+    flex: 0 0 auto; display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; padding: 14px 20px; background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  header h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  header .sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 2px; }
+  button.tool {
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+    border-radius: 9px; padding: 8px 12px; display: flex; align-items: center; gap: 6px; flex: 0 0 auto;
+  }
+  button.tool:hover { border-color: var(--accent); }
+  button.tool:active { transform: scale(0.97); }
+  button.tool.primary { background: var(--accent); color: #fff; border-color: transparent; }
+
+  .toolbar {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 12px 20px; background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  .toolbar .presets { display: flex; gap: 6px; flex-wrap: wrap; flex: 1 1 auto; }
+  .pill {
+    font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink-dim);
+    border-radius: 100px; padding: 7px 13px; display: flex; align-items: center; gap: 6px;
+  }
+  .pill.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-soft-ink); }
+  .pill .dirty-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
+
+  .body-row { flex: 1 1 auto; display: flex; overflow: hidden; }
+  .grid-wrap { flex: 1 1 auto; overflow-y: auto; padding: 18px 20px 40px; }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;
+    align-items: start;
+  }
+  .grid.empty { display: flex; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  }
+  .card.stat { gap: 6px; }
+  .card-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--ink-faint); display: flex; align-items: center; gap: 6px;
+  }
+  .card-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); }
+  .card-title .dot.good { background: var(--good); }
+  .stat-value { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .stat-value.good { color: var(--good); }
+  .stat-sub { font-size: 12px; color: var(--ink-dim); }
+
+  .bars { display: flex; flex-direction: column; gap: 7px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+  .bar-row .label { width: 78px; flex: 0 0 auto; }
+  .bar-row .track { flex: 1 1 auto; height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+  .bar-row .fill { height: 100%; border-radius: 4px; background: var(--accent); }
+  .bar-row .val { width: 26px; flex: 0 0 auto; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .badge {
+    display: inline-flex; font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+    background: var(--line); color: var(--ink-dim); text-transform: lowercase;
+  }
+  .badge.good { background: var(--good-soft); color: var(--good); }
+  .badge.warn { background: var(--warn-soft); color: var(--warn); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-faint); padding: 0 6px 6px; font-weight: 700; }
+  table td { padding: 7px 6px; border-top: 1px solid var(--line); }
+  table tr:first-child td { border-top: 0; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  .list-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 12.5px; }
+  .list-row:first-child { border-top: 0; }
+  .list-row .meta { color: var(--ink-dim); font-size: 11.5px; }
+  .list-row .amt { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .funnel-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; }
+  .funnel-row .label { width: 46px; flex: 0 0 auto; color: var(--ink-dim); }
+  .funnel-row .track { flex: 1 1 auto; height: 16px; border-radius: 4px; background: var(--line); overflow: hidden; }
+  .funnel-row .fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-soft-ink)); }
+  .funnel-row .val { width: 22px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* ============ Customize drawer ============ */
+  .drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 40;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  .drawer-backdrop.show { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 340px; max-width: 92vw;
+    background: var(--panel); border-left: 1px solid var(--line); z-index: 41;
+    display: flex; flex-direction: column; transform: translateX(100%);
+    transition: transform 0.24s cubic-bezier(.2,.8,.2,1);
+  }
+  .drawer-backdrop.show .drawer { transform: translateX(0); }
+  .drawer-head { padding: 16px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; }
+  .drawer-head h2 { font-size: 14px; margin: 0; }
+  .drawer-body { flex: 1 1 auto; overflow-y: auto; padding: 14px 18px; display: flex; flex-direction: column; gap: 18px; }
+  .drawer-foot { flex: 0 0 auto; padding: 14px 18px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
+
+  .shown-row {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line);
+    border-radius: 10px; background: var(--bg); font-size: 12.5px; font-weight: 600;
+  }
+  .shown-row + .shown-row { margin-top: 6px; }
+  .shown-row .grip { color: var(--ink-faint); font-size: 11px; }
+  .shown-row .name { flex: 1 1 auto; }
+  .shown-row button { background: none; border: 0; cursor: pointer; color: var(--ink-dim); font-size: 13px; padding: 2px 4px; }
+  .shown-row button:hover { color: var(--ink); }
+  .shown-row button.remove:hover { color: #E0453C; }
+
+  .avail-group { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .avail-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 10px; border-radius: 9px; font-size: 12.5px; color: var(--ink-dim);
+  }
+  .avail-row .add-btn {
+    background: none; border: 1px solid var(--line); border-radius: 7px; padding: 3px 9px;
+    font-size: 11.5px; font-weight: 700; cursor: pointer; color: var(--ink);
+  }
+  .avail-row .add-btn:hover { border-color: var(--accent); color: var(--accent-soft-ink); }
+
+  .close-btn { background: none; border: 0; cursor: pointer; color: var(--ink-dim); font-size: 18px; line-height: 1; padding: 2px; }
+
+  .empty-hint { margin: auto; text-align: center; color: var(--ink-dim); font-size: 13px; max-width: 260px; }
+</style>
+</head>
+<body>
+  <nav class="site-tabs">
+    <a href="index.html">📱 Mini App</a>
+    <a href="dashboard.html" class="active">📊 Ops-дашборд</a>
+  </nav>
+  <header>
+    <div>
+      <h1>Ops-дашборд — настраиваемый прототип</h1>
+      <div class="sub">Данные мокнутые (по образцу apps/web/lib/mock.ts). Пресеты и порядок сохраняются в этом браузере.</div>
+    </div>
+    <button class="tool" id="resetBtn">↺ Сбросить</button>
+  </header>
+  <div class="toolbar">
+    <div class="presets" id="presets"></div>
+    <button class="tool" id="customizeBtn">⚙️ Настроить</button>
+  </div>
+  <div class="body-row">
+    <div class="grid-wrap"><div class="grid" id="grid"></div></div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop">
+    <div class="drawer">
+      <div class="drawer-head">
+        <h2>Настроить дашборд</h2>
+        <button class="close-btn" id="drawerClose">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div>
+          <div class="section-label">Показаны (можно убрать, переставить)</div>
+          <div id="shownList" style="margin-top:8px"></div>
+        </div>
+        <div>
+          <div class="section-label">Доступны</div>
+          <div id="availList"></div>
+        </div>
+      </div>
+      <div class="drawer-foot">
+        <button class="tool primary" id="savePresetBtn">💾 Сохранить как пресет</button>
+        <button class="tool" id="deletePresetBtn" style="display:none">🗑 Удалить пресет «<span id="deletePresetName"></span>»</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  var STORE_KEY = "sb_ops_dashboard_v1";
+
+  // ---- Widget catalog: id -> {group, title, render()} — data grounded in apps/web/lib/mock.ts ----
+  var OV = {
+    users: { total: 52, consented: 50 },
+    brands: { total: 8, active: 6, campaigns_active: 5 },
+    creatives: { pending: 7, approved: 3, sent: 2, published: 23, failed: 1, rejected: 4 },
+    conversions: { confirmed: 41, refunded: 3, hold: 2, total_byn: "184 320" },
+    ledger: { total_credits: "18 432", accruals: 41 }
+  };
+  var RECON = { published_total: 23, with_conv: 19, without_conv: 4, orphan: 1, pending_hold: 2 };
+  var HOLD = [
+    { brand: "Acme", promo: "ACME-9F2A1B", order: "ord-big-1", amount: "600 000 BYN", at: "06.06 18:21" },
+    { brand: "Nova Cosmetics", promo: "NOVA-3C7E9D", order: "ord-velo-51", amount: "100 BYN", at: "06.06 19:02" }
+  ];
+  var PAYOUTS = [
+    { id: "po-1", amount: "55 000 BYN", status: "paid", provider: "mock_yookassa", at: "05.06" },
+    { id: "po-2", amount: "50 000 BYN", status: "requested", provider: "mock_yookassa", at: "06.06" },
+    { id: "po-3", amount: "72 000 BYN", status: "requested", provider: "mock_yookassa", at: "06.06" }
+  ];
+  var FUNNEL = [
+    ["L0", "Lead", 22], ["L1", "Contact", 17], ["L2", "Qualified", 13], ["L3", "Demo", 10],
+    ["L4", "Proposal", 8], ["L5", "Negotiation", 6], ["L6", "Contract", 5], ["L7", "Deposit", 4],
+    ["L8", "Live", 3], ["L9", "Renewed", 2]
+  ];
+
+  function statCard(title, value, sub, good) {
+    return '<div class="card stat"><div class="card-title"><span class="dot' + (good ? " good" : "") + '"></span>' + title + '</div>' +
+      '<div class="stat-value' + (good ? " good" : "") + '">' + value + '</div>' +
+      (sub ? '<div class="stat-sub">' + sub + '</div>' : "") + '</div>';
+  }
+  function barsCard(title, rows, footer) {
+    var max = Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([1]));
+    var html = '<div class="card"><div class="card-title">' + title + '</div><div class="bars">' +
+      rows.map(function (r) {
+        return '<div class="bar-row"><span class="label">' + r[0] + '</span>' +
+          '<span class="track"><span class="fill" style="width:' + (r[1] / max * 100) + '%"></span></span>' +
+          '<span class="val">' + r[1] + '</span></div>';
+      }).join("") + "</div>";
+    if (footer) html += '<div class="stat-sub" style="margin-top:2px">' + footer + "</div>";
+    return html + "</div>";
+  }
+
+  var WIDGETS = {
+    stat_users: { group: "Метрики", title: "Пользователи", render: function () {
+      return statCard("Пользователи", OV.users.total, OV.users.consented + " с согласием 99-З");
+    }},
+    stat_brands: { group: "Метрики", title: "Бренды (active)", render: function () {
+      return statCard("Бренды (active)", OV.brands.active, "из " + OV.brands.total + " всего");
+    }},
+    stat_campaigns: { group: "Метрики", title: "Кампании (active)", render: function () {
+      return statCard("Кампании (active)", OV.brands.campaigns_active);
+    }},
+    stat_published: { group: "Метрики", title: "Опубликовано", render: function () {
+      return statCard("Опубликовано", OV.creatives.published, "креативов", true);
+    }},
+    stat_conversions: { group: "Метрики", title: "Конверсии (confirmed)", render: function () {
+      return statCard("Конверсии (confirmed)", OV.conversions.confirmed, null, true);
+    }},
+    stat_balance: { group: "Метрики", title: "AI-баланс", render: function () {
+      return statCard("AI-баланс", OV.ledger.total_credits + " BYN", OV.ledger.accruals + " начислений");
+    }},
+    creatives_status: { group: "Графики", title: "Креативы по статусам", render: function () {
+      return barsCard("Креативы по статусам", [
+        ["published", OV.creatives.published], ["pending", OV.creatives.pending],
+        ["rejected", OV.creatives.rejected], ["approved", OV.creatives.approved],
+        ["sent", OV.creatives.sent], ["failed", OV.creatives.failed]
+      ]);
+    }},
+    conversions_status: { group: "Графики", title: "Конверсии по статусам", render: function () {
+      return barsCard("Конверсии", [
+        ["confirmed", OV.conversions.confirmed], ["refunded", OV.conversions.refunded], ["hold", OV.conversions.hold]
+      ], "Сумма конверсий: <strong>" + OV.conversions.total_byn + " BYN</strong>");
+    }},
+    funnel: { group: "Графики", title: "Воронка L0–L9", render: function () {
+      var max = Math.max.apply(null, FUNNEL.map(function (f) { return f[2]; }));
+      return '<div class="card"><div class="card-title">Воронка L0–L9</div><div class="bars">' +
+        FUNNEL.map(function (f) {
+          return '<div class="funnel-row"><span class="label">' + f[0] + '</span>' +
+            '<span class="track"><span class="fill" style="width:' + (f[2] / max * 100) + '%"></span></span>' +
+            '<span class="val">' + f[2] + '</span></div>';
+        }).join("") + "</div></div>";
+    }},
+    reconciliation: { group: "Таблицы", title: "Сверка публикаций ↔ конверсии", render: function () {
+      return '<div class="card"><div class="card-title">Сверка публикаций ↔ конверсии (G4)</div><table>' +
+        '<tr><td>Опубликовано креативов</td><td class="num">' + RECON.published_total + '</td></tr>' +
+        '<tr><td>Из них с конверсиями</td><td class="num" style="color:var(--good)">' + RECON.with_conv + '</td></tr>' +
+        '<tr><td>Опубликовано без конверсий</td><td class="num">' + RECON.without_conv + '</td></tr>' +
+        '<tr><td>Orphan-конверсии</td><td class="num" style="color:var(--warn)">' + RECON.orphan + '</td></tr>' +
+        '<tr><td>На ручном разборе (hold)</td><td class="num" style="color:var(--warn)">' + RECON.pending_hold + '</td></tr>' +
+        "</table></div>";
+    }},
+    fraud_queue: { group: "Таблицы", title: "Фрод-очередь", render: function () {
+      return '<div class="card"><div class="card-title">Фрод-очередь · на ручном разборе</div>' +
+        HOLD.map(function (h) {
+          return '<div class="list-row"><span><strong>' + h.brand + '</strong><br><span class="meta">' + h.promo + " · " + h.order + " · " + h.at + '</span></span><span class="amt">' + h.amount + "</span></div>";
+        }).join("") + "</div>";
+    }},
+    payouts: { group: "Таблицы", title: "Выплаты", render: function () {
+      return '<div class="card"><div class="card-title">Выплаты</div><table><tr><th>Сумма</th><th>Статус</th><th>Когда</th></tr>' +
+        PAYOUTS.map(function (p) {
+          var cls = p.status === "paid" ? "good" : "warn";
+          return "<tr><td class=\"num\">" + p.amount + '</td><td><span class="badge ' + cls + '">' + p.status + "</span></td><td>" + p.at + "</td></tr>";
+        }).join("") + "</table></div>";
+    }}
+  };
+  var WIDGET_IDS = Object.keys(WIDGETS);
+
+  var BUILTIN_PRESETS = [
+    { id: "overview", name: "Общий обзор", builtin: true, widgets: ["stat_users","stat_brands","stat_campaigns","stat_published","stat_conversions","stat_balance","creatives_status","conversions_status","reconciliation"] },
+    { id: "finance", name: "Финансы", builtin: true, widgets: ["stat_balance","conversions_status","payouts","funnel"] },
+    { id: "fraud", name: "Фрод", builtin: true, widgets: ["fraud_queue","reconciliation","conversions_status"] }
+  ];
+
+  function loadStore() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { customPresets: [], lastActivePreset: "overview", lastWidgets: null };
+  }
+  function saveStore() {
+    localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  }
+
+  var store = loadStore();
+  var state = {
+    activePresetId: store.lastActivePreset || "overview",
+    widgets: store.lastWidgets || BUILTIN_PRESETS[0].widgets.slice()
+  };
+
+  function allPresets() { return BUILTIN_PRESETS.concat(store.customPresets); }
+  function findPreset(id) { return allPresets().filter(function (p) { return p.id === id; })[0]; }
+
+  function el(sel) { return document.querySelector(sel); }
+
+  function isDirty() {
+    var p = findPreset(state.activePresetId);
+    if (!p) return true;
+    if (p.widgets.length !== state.widgets.length) return true;
+    for (var i = 0; i < p.widgets.length; i++) if (p.widgets[i] !== state.widgets[i]) return true;
+    return false;
+  }
+
+  function renderPresetPills() {
+    var wrap = el("#presets");
+    var dirty = isDirty();
+    wrap.innerHTML = allPresets().map(function (p) {
+      var active = p.id === state.activePresetId;
+      return '<button class="pill' + (active ? " active" : "") + '" data-preset="' + p.id + '">' +
+        p.name + (active && dirty ? '<span class="dirty-dot" title="Есть несохранённые изменения"></span>' : "") +
+        "</button>";
+    }).join("");
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-preset]"), function (btn) {
+      btn.addEventListener("click", function () {
+        var p = findPreset(btn.getAttribute("data-preset"));
+        state.activePresetId = p.id;
+        state.widgets = p.widgets.slice();
+        persistAndRender();
+      });
+    });
+  }
+
+  function renderGrid() {
+    var grid = el("#grid");
+    if (state.widgets.length === 0) {
+      grid.className = "grid empty";
+      grid.innerHTML = '<div class="empty-hint">Нет ни одного виджета. Открой «⚙️ Настроить» и добавь хотя бы один.</div>';
+      return;
+    }
+    grid.className = "grid";
+    grid.innerHTML = state.widgets.map(function (id) { return WIDGETS[id] ? WIDGETS[id].render() : ""; }).join("");
+  }
+
+  function renderDrawer() {
+    var shown = el("#shownList");
+    shown.innerHTML = state.widgets.map(function (id, idx) {
+      var w = WIDGETS[id];
+      return '<div class="shown-row" data-id="' + id + '">' +
+        '<span class="grip">⠿</span><span class="name">' + w.title + "</span>" +
+        '<button data-act="up" ' + (idx === 0 ? "disabled style=\"opacity:.3\"" : "") + ' title="Выше">↑</button>' +
+        '<button data-act="down" ' + (idx === state.widgets.length - 1 ? "disabled style=\"opacity:.3\"" : "") + ' title="Ниже">↓</button>' +
+        '<button data-act="remove" class="remove" title="Убрать">✕</button>' +
+      "</div>";
+    }).join("");
+
+    var avail = el("#availList");
+    var remaining = WIDGET_IDS.filter(function (id) { return state.widgets.indexOf(id) === -1; });
+    if (remaining.length === 0) {
+      avail.innerHTML = '<div class="stat-sub" style="padding:6px 2px">Все виджеты уже добавлены.</div>';
+    } else {
+      var groups = {};
+      remaining.forEach(function (id) {
+        var g = WIDGETS[id].group;
+        (groups[g] = groups[g] || []).push(id);
+      });
+      avail.innerHTML = Object.keys(groups).map(function (g) {
+        return '<div class="avail-group"><div class="section-label" style="margin-top:4px">' + g + "</div>" +
+          groups[g].map(function (id) {
+            return '<div class="avail-row"><span>' + WIDGETS[id].title + '</span><button class="add-btn" data-add="' + id + '">+ Добавить</button></div>';
+          }).join("") + "</div>";
+      }).join("");
+    }
+
+    Array.prototype.forEach.call(shown.querySelectorAll("[data-act]"), function (btn) {
+      btn.addEventListener("click", function () {
+        var row = btn.closest(".shown-row"), id = row.getAttribute("data-id");
+        var idx = state.widgets.indexOf(id), act = btn.getAttribute("data-act");
+        if (act === "remove") state.widgets.splice(idx, 1);
+        else if (act === "up" && idx > 0) { state.widgets.splice(idx, 1); state.widgets.splice(idx - 1, 0, id); }
+        else if (act === "down" && idx < state.widgets.length - 1) { state.widgets.splice(idx, 1); state.widgets.splice(idx + 1, 0, id); }
+        persistAndRender();
+      });
+    });
+    Array.prototype.forEach.call(avail.querySelectorAll("[data-add]"), function (btn) {
+      btn.addEventListener("click", function () {
+        state.widgets.push(btn.getAttribute("data-add"));
+        persistAndRender();
+      });
+    });
+
+    var activePreset = findPreset(state.activePresetId);
+    var delBtn = el("#deletePresetBtn");
+    if (activePreset && !activePreset.builtin && !isDirty()) {
+      delBtn.style.display = "flex";
+      el("#deletePresetName").textContent = activePreset.name;
+    } else {
+      delBtn.style.display = "none";
+    }
+  }
+
+  function persistAndRender() {
+    store.lastActivePreset = state.activePresetId;
+    store.lastWidgets = state.widgets;
+    saveStore();
+    renderPresetPills();
+    renderGrid();
+    renderDrawer();
+  }
+
+  el("#customizeBtn").addEventListener("click", function () { el("#drawerBackdrop").classList.add("show"); });
+  el("#drawerClose").addEventListener("click", function () { el("#drawerBackdrop").classList.remove("show"); });
+  el("#drawerBackdrop").addEventListener("click", function (e) { if (e.target === el("#drawerBackdrop")) el("#drawerBackdrop").classList.remove("show"); });
+
+  el("#savePresetBtn").addEventListener("click", function () {
+    var name = prompt("Название пресета:", "Мой набор");
+    if (!name) return;
+    var id = "custom_" + Date.now();
+    store.customPresets.push({ id: id, name: name, builtin: false, widgets: state.widgets.slice() });
+    state.activePresetId = id;
+    persistAndRender();
+  });
+  el("#deletePresetBtn").addEventListener("click", function () {
+    var p = findPreset(state.activePresetId);
+    if (!p || p.builtin) return;
+    if (!confirm("Удалить пресет «" + p.name + "»?")) return;
+    store.customPresets = store.customPresets.filter(function (x) { return x.id !== p.id; });
+    state.activePresetId = "overview";
+    state.widgets = BUILTIN_PRESETS[0].widgets.slice();
+    persistAndRender();
+  });
+  el("#resetBtn").addEventListener("click", function () {
+    localStorage.removeItem(STORE_KEY);
+    store = loadStore();
+    state = { activePresetId: "overview", widgets: BUILTIN_PRESETS[0].widgets.slice() };
+    persistAndRender();
+  });
+
+  renderPresetPills();
+  renderGrid();
+  renderDrawer();
+})();
+</script>
+</body>
+</html>
