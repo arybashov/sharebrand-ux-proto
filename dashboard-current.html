@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShareBrand Ops-дашборд — текущий вид (как в проде)</title>
+<style>
+  :root {
+    --bg: #F1F1F4; --bar: #FFFFFF; --ink: #17181F; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
+    --line: rgba(23,24,31,0.10); --accent: #FF6A3D;
+    --good: #1FAE7D; --good-soft: #DCF3EA; --warn: #C77B12; --warn-soft: #FBEBD2;
+    --sidebar-bg: #14151B; --sidebar-ink: #E7E8EC; --sidebar-dim: #8B8D97; --sidebar-active: #FF6A3D;
+    --content-bg: #F7F7F9; --card-bg: #FFFFFF; --card-line: rgba(23,24,31,0.09);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#0B0C11; --bar:#15161D; --ink:#F1F1F5; --ink-dim:#9496A6; --ink-faint:#6D6F80;
+      --line:rgba(255,255,255,0.09); --accent:#FF7A4D; --good:#34D399; --good-soft:#123527;
+      --warn:#E3A23C; --warn-soft:#3A2A10;
+      --content-bg:#0B0C11; --card-bg:#15161D; --card-line:rgba(255,255,255,0.09);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0B0C11; --bar:#15161D; --ink:#F1F1F5; --ink-dim:#9496A6; --ink-faint:#6D6F80;
+    --line:rgba(255,255,255,0.09); --accent:#FF7A4D; --good:#34D399; --good-soft:#123527;
+    --warn:#E3A23C; --warn-soft:#3A2A10;
+    --content-bg:#0B0C11; --card-bg:#15161D; --card-line:rgba(255,255,255,0.09);
+  }
+  :root[data-theme="light"] {
+    --bg:#F1F1F4; --bar:#FFFFFF; --ink:#17181F; --ink-dim:#6B6D7C; --ink-faint:#9799A8;
+    --line:rgba(23,24,31,0.10); --accent:#FF6A3D; --good:#1FAE7D; --good-soft:#DCF3EA;
+    --warn:#C77B12; --warn-soft:#FBEBD2;
+    --content-bg:#F7F7F9; --card-bg:#FFFFFF; --card-line:rgba(23,24,31,0.09);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--ink);
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+  .site-tabs { flex: 0 0 auto; display: flex; gap: 4px; padding: 10px 20px 0; background: var(--bar); }
+  .site-tabs a {
+    font-size: 12.5px; font-weight: 700; text-decoration: none; color: var(--ink-dim);
+    padding: 8px 14px; border-radius: 8px 8px 0 0;
+  }
+  .site-tabs a.active { color: var(--ink); background: var(--bg); }
+  .site-tabs a:hover:not(.active) { color: var(--ink); }
+  .banner {
+    flex: 0 0 auto; padding: 8px 20px; background: var(--warn-soft); color: var(--warn);
+    font-size: 12px; font-weight: 700; text-align: center;
+  }
+
+  .shell { flex: 1 1 auto; display: flex; overflow: hidden; }
+
+  .sidebar {
+    flex: 0 0 220px; background: var(--sidebar-bg); color: var(--sidebar-ink);
+    display: flex; flex-direction: column; padding: 18px 14px; overflow-y: auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 18px; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex: 0 0 auto;
+  }
+  .brand .name { font-size: 13.5px; font-weight: 700; }
+  .brand .sub { font-size: 10.5px; color: var(--sidebar-dim); }
+  .nav-group { margin-bottom: 16px; }
+  .nav-group-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--sidebar-dim); padding: 0 8px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px; padding: 8px 8px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; color: var(--sidebar-dim); text-decoration: none;
+  }
+  .nav-item .ic { width: 16px; text-align: center; font-size: 13px; }
+  .nav-item.active { background: rgba(255,106,61,0.16); color: #fff; }
+  .nav-item:hover:not(.active) { color: var(--sidebar-ink); }
+
+  .content { flex: 1 1 auto; overflow-y: auto; background: var(--content-bg); padding: 24px 28px 48px; }
+  .page-head { margin-bottom: 18px; }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
+  }
+  .page-head h1 { font-size: 21px; font-weight: 800; margin: 4px 0 2px; letter-spacing: -0.01em; }
+  .page-head .sub { font-size: 13px; color: var(--ink-dim); }
+
+  .grid6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 1000px) { .grid6 { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .grid6 { grid-template-columns: repeat(2, 1fr); } }
+
+  .stat {
+    background: var(--card-bg); border: 1px solid var(--card-line); border-radius: 12px; padding: 14px;
+  }
+  .stat .label { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); display: flex; align-items: center; gap: 5px; }
+  .stat .label .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-faint); }
+  .stat .label .dot.good { background: var(--good); }
+  .stat .value { font-size: 22px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat .value.good { color: var(--good); }
+  .stat .foot { font-size: 11px; color: var(--ink-dim); margin-top: 2px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card-bg); border: 1px solid var(--card-line); border-radius: 14px; padding: 16px; }
+  .card-title { font-size: 13px; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .card-title a { font-size: 11.5px; font-weight: 600; color: var(--accent); text-decoration: none; }
+
+  .bars { display: flex; flex-direction: column; gap: 7px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+  .bar-row .label { width: 78px; flex: 0 0 auto; }
+  .bar-row .track { flex: 1 1 auto; height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+  .bar-row .fill { height: 100%; border-radius: 4px; background: var(--accent); }
+  .bar-row .val { width: 26px; flex: 0 0 auto; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table td { padding: 7px 6px; border-top: 1px solid var(--line); }
+  table tr:first-child td { border-top: 0; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+</style>
+</head>
+<body>
+  <nav class="site-tabs">
+    <a href="index.html">📱 Mini App</a>
+    <a href="dashboard.html">📊 Дашборд (новый)</a>
+    <a href="dashboard-current.html" class="active">🗂️ Дашборд (текущий)</a>
+  </nav>
+  <div class="banner">Статичный снимок реального apps/web/app/ops — как есть в проде сейчас, без настройки. Для сравнения с новым.</div>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="mark">SB</div>
+        <div><div class="name">ShareBrand</div><div class="sub">Панель управления</div></div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Ops</div>
+        <a class="nav-item active"><span class="ic">▦</span> Дашборд</a>
+        <a class="nav-item"><span class="ic">▽</span> Воронка L0–L9</a>
+        <a class="nav-item"><span class="ic">◫</span> Бренды и кампании</a>
+        <a class="nav-item"><span class="ic">◔</span> Фрод-очередь</a>
+        <a class="nav-item"><span class="ic">▤</span> Выплаты</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Бренд</div>
+        <a class="nav-item"><span class="ic">◻</span> Кабинет бренда</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Сервисы</div>
+        <a class="nav-item"><span class="ic">↗</span> Grafana · метрики</a>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="page-head">
+        <div class="eyebrow">CRM · обзор</div>
+        <h1>Ops-дашборд</h1>
+        <div class="sub">Сводка пилота: пользователи, кампании, конверсии, баланс.</div>
+      </div>
+
+      <div class="grid6" id="stats"></div>
+      <div class="grid2" id="bars2"></div>
+      <div class="card" id="reconCard"></div>
+    </main>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  // Same mock numbers as the customizable version (apps/web/lib/mock.ts), fixed layout — this
+  // page is a snapshot of what /ops looks like today, not an interactive prototype.
+  var OV = {
+    users: { total: 52, consented: 50 },
+    brands: { total: 8, active: 6, campaigns_active: 5 },
+    creatives: { pending: 7, approved: 3, sent: 2, published: 23, failed: 1, rejected: 4 },
+    conversions: { confirmed: 41, refunded: 3, hold: 2, total_byn: "184 320" },
+    ledger: { total_credits: "18 432", accruals: 41 }
+  };
+  var RECON = { published_total: 23, with_conv: 19, without_conv: 4, orphan: 1, pending_hold: 2 };
+
+  function stat(label, value, foot, good) {
+    return '<div class="stat"><div class="label"><span class="dot' + (good ? " good" : "") + '"></span>' + label + '</div>' +
+      '<div class="value' + (good ? " good" : "") + '">' + value + '</div>' +
+      (foot ? '<div class="foot">' + foot + "</div>" : "") + "</div>";
+  }
+  function bars(rows) {
+    var max = Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([1]));
+    return '<div class="bars">' + rows.map(function (r) {
+      return '<div class="bar-row"><span class="label">' + r[0] + '</span>' +
+        '<span class="track"><span class="fill" style="width:' + (r[1] / max * 100) + '%"></span></span>' +
+        '<span class="val">' + r[1] + '</span></div>';
+    }).join("") + "</div>";
+  }
+
+  document.getElementById("stats").innerHTML =
+    stat("Пользователи", OV.users.total, OV.users.consented + " с согласием 99-З") +
+    stat("Бренды (active)", OV.brands.active, "из " + OV.brands.total + " всего") +
+    stat("Кампании (active)", OV.brands.campaigns_active) +
+    stat("Опубликовано", OV.creatives.published, "креативов", true) +
+    stat("Конверсии (conf.)", OV.conversions.confirmed, null, true) +
+    stat("AI-баланс", OV.ledger.total_credits + " BYN", OV.ledger.accruals + " начислений");
+
+  document.getElementById("bars2").innerHTML =
+    '<div class="card"><div class="card-title">Креативы по статусам</div>' + bars([
+      ["published", OV.creatives.published], ["pending", OV.creatives.pending],
+      ["rejected", OV.creatives.rejected], ["approved", OV.creatives.approved],
+      ["sent", OV.creatives.sent], ["failed", OV.creatives.failed]
+    ]) + "</div>" +
+    '<div class="card"><div class="card-title">Конверсии</div>' + bars([
+      ["confirmed", OV.conversions.confirmed], ["refunded", OV.conversions.refunded], ["hold", OV.conversions.hold]
+    ]) + '<div class="foot" style="margin-top:8px">Сумма конверсий: <strong>' + OV.conversions.total_byn + ' BYN</strong></div></div>';
+
+  document.getElementById("reconCard").innerHTML =
+    '<div class="card-title">Сверка публикаций ↔ конверсии (G4)<a href="#">Фрод-очередь →</a></div><table>' +
+    "<tr><td>Опубликовано креативов</td><td class=\"num\">" + RECON.published_total + "</td></tr>" +
+    "<tr><td>Из них с конверсиями</td><td class=\"num\" style=\"color:var(--good)\">" + RECON.with_conv + "</td></tr>" +
+    "<tr><td>Опубликовано без конверсий</td><td class=\"num\">" + RECON.without_conv + "</td></tr>" +
+    "<tr><td>Orphan-конверсии</td><td class=\"num\" style=\"color:var(--warn)\">" + RECON.orphan + "</td></tr>" +
+    "<tr><td>На ручном разборе (hold)</td><td class=\"num\" style=\"color:var(--warn)\">" + RECON.pending_hold + "</td></tr>" +
+    "</table>";
+})();
+</script>
+</body>
+</html>

@@ -83,6 +83,16 @@
   }
   .grid.empty { display: flex; }
 
+  .grid-item { position: relative; cursor: grab; border-radius: 14px; }
+  .grid-item:active { cursor: grabbing; }
+  .grid-item .drag-handle {
+    position: absolute; top: 10px; right: 12px; font-size: 14px; color: var(--ink-faint);
+    opacity: 0; transition: opacity 0.15s ease; pointer-events: none;
+  }
+  .grid-item:hover .drag-handle { opacity: 1; }
+  .grid-item.dragging { opacity: 0.35; }
+  .grid-item.drag-over { outline: 2px dashed var(--accent); outline-offset: 3px; }
+
   .card {
     background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
     padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
@@ -178,12 +188,13 @@
 <body>
   <nav class="site-tabs">
     <a href="index.html">📱 Mini App</a>
-    <a href="dashboard.html" class="active">📊 Ops-дашборд</a>
+    <a href="dashboard.html" class="active">📊 Дашборд (новый)</a>
+    <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
   </nav>
   <header>
     <div>
       <h1>Ops-дашборд — настраиваемый прототип</h1>
-      <div class="sub">Данные мокнутые (по образцу apps/web/lib/mock.ts). Пресеты и порядок сохраняются в этом браузере.</div>
+      <div class="sub">Карточки можно перетаскивать мышкой. Данные мокнутые (по образцу apps/web/lib/mock.ts). Пресеты и порядок сохраняются в этом браузере.</div>
     </div>
     <button class="tool" id="resetBtn">↺ Сбросить</button>
   </header>
@@ -392,7 +403,47 @@
       return;
     }
     grid.className = "grid";
-    grid.innerHTML = state.widgets.map(function (id) { return WIDGETS[id] ? WIDGETS[id].render() : ""; }).join("");
+    grid.innerHTML = state.widgets.map(function (id) {
+      if (!WIDGETS[id]) return "";
+      return '<div class="grid-item" draggable="true" data-wid="' + id + '"><span class="drag-handle" title="Перетащить">⠿</span>' +
+        WIDGETS[id].render() + "</div>";
+    }).join("");
+    wireGridDnd();
+  }
+
+  // Native HTML5 drag-and-drop to reorder cards directly on the dashboard.
+  function wireGridDnd() {
+    var items = Array.prototype.slice.call(document.querySelectorAll(".grid-item"));
+    var dragId = null;
+    items.forEach(function (item) {
+      item.addEventListener("dragstart", function (e) {
+        dragId = item.getAttribute("data-wid");
+        item.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        try { e.dataTransfer.setData("text/plain", dragId); } catch (err) {}
+      });
+      item.addEventListener("dragend", function () {
+        item.classList.remove("dragging");
+        items.forEach(function (i) { i.classList.remove("drag-over"); });
+      });
+      item.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (item.getAttribute("data-wid") !== dragId) item.classList.add("drag-over");
+      });
+      item.addEventListener("dragleave", function () { item.classList.remove("drag-over"); });
+      item.addEventListener("drop", function (e) {
+        e.preventDefault();
+        item.classList.remove("drag-over");
+        var targetId = item.getAttribute("data-wid");
+        if (!dragId || dragId === targetId) return;
+        var from = state.widgets.indexOf(dragId), to = state.widgets.indexOf(targetId);
+        if (from === -1 || to === -1) return;
+        state.widgets.splice(from, 1);
+        state.widgets.splice(to, 0, dragId);
+        persistAndRender();
+      });
+    });
   }
 
   function renderDrawer() {
