@@ -107,7 +107,7 @@
   .grid-item:hover .drag-handle { opacity: 1; }
   .grid-item.dragging { opacity: 0.35; }
   .grid-item.drag-over { outline: 2px dashed var(--accent); outline-offset: 3px; }
-  .grid-item.resizing { z-index: 3; box-shadow: 0 0 0 2px var(--accent); }
+  .grid-item.resizing { z-index: 20; box-shadow: 0 8px 24px -6px rgba(0,0,0,0.35); }
 
   .size-handle {
     position: absolute; right: 2px; bottom: 2px; width: 18px; height: 18px; z-index: 2;
@@ -119,6 +119,10 @@
   .grid-item:hover .size-handle { opacity: 0.7; }
   .size-handle:hover { opacity: 1 !important; }
   .resize-overlay { position: fixed; inset: 0; z-index: 50; cursor: nwse-resize; }
+  .size-ghost {
+    position: fixed; z-index: 19; pointer-events: none; border-radius: 14px;
+    border: 2px dashed var(--accent); background: var(--accent-soft); opacity: 0.55;
+  }
 
   .card {
     background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
@@ -498,45 +502,40 @@
         var overlay = document.createElement("div");
         overlay.className = "resize-overlay";
         document.body.appendChild(overlay);
-        var lastCols = start.cols, lastRows = start.rows;
+
+        // The card itself grows/shrinks smoothly in raw pixels, following the cursor 1:1 —
+        // it visually escapes its grid track (no reflow of siblings while dragging, so nothing
+        // jumps). A dashed ghost shows the grid-snapped target the whole time. Only on release
+        // does the real span change and siblings actually move (persistAndRender's FLIP handles
+        // that single, final reflow smoothly).
+        var startRect = item.getBoundingClientRect();
+        item.style.width = startRect.width + "px";
+        item.style.height = startRect.height + "px";
+
+        var ghost = document.createElement("div");
+        ghost.className = "size-ghost";
+        document.body.appendChild(ghost);
 
         function onMove(ev) {
-          var dCols = Math.round((ev.clientX - startX) / (cellW + gap));
-          var dRows = Math.round((ev.clientY - startY) / (cellH + gap));
-          var cols = Math.min(GRID_COLS, Math.max(MIN_COLS, start.cols + dCols));
-          var rows = Math.min(MAX_ROWS, Math.max(1, start.rows + dRows));
-          if (cols === lastCols && rows === lastRows) return; // hasn't crossed a cell yet — nothing to reflow
-          lastCols = cols; lastRows = rows;
+          var rawW = Math.max(cellW, startRect.width + (ev.clientX - startX));
+          var rawH = Math.max(cellH, startRect.height + (ev.clientY - startY));
+          item.style.width = rawW + "px";
+          item.style.height = rawH + "px";
 
-          // The item being dragged follows the cursor directly (no animation — that would lag
-          // the pointer). Everything ELSE that gets pushed around by this span change gets a
-          // quick glide instead of an instant jump: measure siblings, apply the new span, then
-          // animate each sibling from where it WAS to where it landed (reverse-FLIP).
-          var others = Array.prototype.slice.call(document.querySelectorAll(".grid-item"))
-            .filter(function (el) { return el !== item; });
-          var before = {};
-          others.forEach(function (el) { before[el.getAttribute("data-wid")] = el.getBoundingClientRect(); });
-
-          item.style.gridColumn = "span " + cols;
-          item.style.gridRow = "span " + rows;
+          var cols = Math.min(GRID_COLS, Math.max(MIN_COLS, Math.round((rawW + gap) / (cellW + gap))));
+          var rows = Math.min(MAX_ROWS, Math.max(1, Math.round((rawH + gap) / (cellH + gap))));
           item.__pendingSize = { cols: cols, rows: rows };
 
-          others.forEach(function (el) {
-            var was = before[el.getAttribute("data-wid")];
-            var now = el.getBoundingClientRect();
-            var dx = was.left - now.left, dy = was.top - now.top;
-            if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
-            el.style.transition = "none";
-            el.style.transform = "translate(" + dx + "px," + dy + "px)";
-            void el.offsetWidth;
-            requestAnimationFrame(function () {
-              el.style.transition = "transform 160ms ease-out";
-              el.style.transform = "";
-            });
-          });
+          ghost.style.left = startRect.left + "px";
+          ghost.style.top = startRect.top + "px";
+          ghost.style.width = (cols * cellW + (cols - 1) * gap) + "px";
+          ghost.style.height = (rows * cellH + (rows - 1) * gap) + "px";
         }
         function onUp() {
           overlay.remove();
+          ghost.remove();
+          item.style.width = "";
+          item.style.height = "";
           item.setAttribute("draggable", "true");
           item.classList.remove("resizing");
           window.removeEventListener("pointermove", onMove);
