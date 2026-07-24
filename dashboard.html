@@ -99,11 +99,18 @@
     position: absolute; border-radius: 14px; overflow: hidden;
   }
   .grid-item .card { height: 100%; overflow: auto; }
+  /* Grab anywhere along the top strip to move the card — like a window title bar — not just
+     the small icon. The icon is now purely a visual hint; the whole zone is the hit area. */
+  .grid-item .drag-zone {
+    position: absolute; top: 0; left: 0; right: 0; height: 38px; z-index: 3; cursor: grab;
+    transition: background 0.12s ease;
+  }
+  .grid-item .drag-zone:hover { background: linear-gradient(to bottom, var(--line-fine), transparent); }
+  .grid-item .drag-zone:active { cursor: grabbing; }
   .grid-item .drag-handle {
     position: absolute; top: 10px; right: 12px; font-size: 14px; color: var(--ink-faint);
-    opacity: 0; transition: opacity 0.15s ease; z-index: 2; cursor: grab;
+    opacity: 0; transition: opacity 0.15s ease; pointer-events: none;
   }
-  .grid-item .drag-handle:active { cursor: grabbing; }
   .grid-item:hover .drag-handle { opacity: 1; }
   .grid-item.resizing, .grid-item.moving { z-index: 20; box-shadow: 0 8px 24px -6px rgba(0,0,0,0.35); }
 
@@ -486,7 +493,7 @@
         "width:calc(" + L.cols + " * var(--cell-w) + " + (L.cols - 1) + " * var(--gap));" +
         "height:" + (L.rows * CELL_H + (L.rows - 1) * GAP) + "px;";
       return '<div class="grid-item" data-wid="' + id + '" style="' + style + '">' +
-        '<span class="drag-handle" title="Перетащить">⠿</span>' +
+        '<div class="drag-zone" title="Потяните за верх, чтобы переместить"><span class="drag-handle">⠿</span></div>' +
         WIDGETS[id].render() +
         '<span class="size-handle" title="Потяните, чтобы изменить размер"></span>' +
         "</div>";
@@ -582,12 +589,12 @@
     });
   }
 
-  // Drag from the ⠿ handle to move a card to a new (x,y). Snaps to whole grid cells on
-  // release. No collision handling on purpose — cards are independent, so dropping one on
-  // top of another is allowed rather than auto-rearranging anything.
+  // Grab anywhere along the top strip (not just the ⠿ icon) to move a card to a new (x,y).
+  // Snaps to whole grid cells on release. No collision handling on purpose — cards are
+  // independent, so dropping one on top of another is allowed rather than auto-rearranging.
   function wireMoveHandles() {
     Array.prototype.forEach.call(document.querySelectorAll(".grid-item"), function (item) {
-      var handle = item.querySelector(".drag-handle");
+      var handle = item.querySelector(".drag-zone");
       var id = item.getAttribute("data-wid");
       handle.addEventListener("pointerdown", function (e) {
         e.preventDefault();
