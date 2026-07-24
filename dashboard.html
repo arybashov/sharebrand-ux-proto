@@ -222,6 +222,25 @@
   .pie-legend-row .lbl { color: var(--ink-dim); flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pie-legend-row .v { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
 
+  /* ============ Trend (line/area) — change-over-time, sequential single hue ============ */
+  .trend-wrap { position: relative; flex: 1 1 auto; min-height: 0; }
+  .trend-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .trend-svg .baseline { stroke: var(--line); stroke-width: 1; }
+  .trend-svg .area { fill: var(--series-1); opacity: 0.14; }
+  .trend-svg .line { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .trend-svg .dot-end { fill: var(--series-1); }
+  .trend-svg .crosshair { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 2 2; opacity: 0; }
+  .trend-svg .hover-dot { fill: var(--panel); stroke: var(--series-1); stroke-width: 2; opacity: 0; }
+  .trend-endlabel { position: absolute; font-size: 11px; font-weight: 800; color: var(--series-1); font-variant-numeric: tabular-nums; }
+  .trend-axis { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10.5px; color: var(--ink-faint); }
+  .trend-tooltip {
+    position: absolute; top: 0; left: 0; transform: translate(-50%, -100%);
+    background: var(--ink); color: var(--panel); font-size: 11px; font-weight: 700;
+    padding: 4px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity 0.1s ease; z-index: 5; font-variant-numeric: tabular-nums;
+  }
+  .trend-tooltip.show { opacity: 1; }
+
   /* ============ Customize drawer ============ */
   .drawer-backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 40;
@@ -340,6 +359,13 @@
     ["L4", "Proposal", 8], ["L5", "Negotiation", 6], ["L6", "Contract", 5], ["L7", "Deposit", 4],
     ["L8", "Live", 3], ["L9", "Renewed", 2]
   ];
+  // Новые пользователи в день — последние 14 дней (тренд, не срез).
+  var DAILY_USERS = [
+    ["09.06", 1], ["10.06", 2], ["11.06", 1], ["12.06", 3], ["13.06", 2], ["14.06", 4],
+    ["15.06", 3], ["16.06", 5], ["17.06", 4], ["18.06", 6], ["19.06", 5], ["20.06", 7],
+    ["21.06", 6], ["22.06", 8]
+  ];
+  var TREND_DATA = { daily_users: DAILY_USERS }; // id -> series, looked up by wireTrendHover
 
   function statCard(title, value, sub, good) {
     return '<div class="card stat"><div class="card-title"><span class="dot' + (good ? " good" : "") + '"></span>' + title + '</div>' +
@@ -371,6 +397,72 @@
           '<span class="lbl">' + r[0] + '</span><span class="v">' + r[1] + "</span></div>";
       }).join("") + "</div></div>";
   }
+  // Change-over-time gets its own form (line + area, single sequential hue) — a trend is not
+  // a part-to-whole, so it doesn't belong on the bars/pie/donut menu (dataviz skill: pick the
+  // form by the job first). Ships with a hover crosshair+tooltip, per the skill's default.
+  var TREND_VB_W = 300, TREND_VB_H = 88, TREND_TOP = 6, TREND_BOTTOM = 78;
+  function trendCard(id, title, data) {
+    var n = data.length;
+    var maxV = Math.max.apply(null, data.map(function (d) { return d[1]; }).concat([1])) * 1.15;
+    var xStep = TREND_VB_W / (n - 1);
+    var pts = data.map(function (d, i) {
+      return { x: i * xStep, y: TREND_BOTTOM - (d[1] / maxV) * (TREND_BOTTOM - TREND_TOP) };
+    });
+    var linePath = pts.map(function (p, i) { return (i === 0 ? "M" : "L") + p.x.toFixed(1) + "," + p.y.toFixed(1); }).join(" ");
+    var areaPath = linePath + " L" + pts[n - 1].x.toFixed(1) + "," + TREND_BOTTOM + " L" + pts[0].x.toFixed(1) + "," + TREND_BOTTOM + " Z";
+    var last = pts[n - 1];
+    return '<div class="card">' +
+      '<div class="card-title">' + title + '</div>' +
+      '<div class="trend-wrap" data-trend="' + id + '">' +
+        '<svg class="trend-svg" viewBox="0 0 ' + TREND_VB_W + ' ' + TREND_VB_H + '" preserveAspectRatio="none" data-n="' + n + '">' +
+          '<line class="baseline" x1="0" y1="' + TREND_BOTTOM + '" x2="' + TREND_VB_W + '" y2="' + TREND_BOTTOM + '"/>' +
+          '<path class="area" d="' + areaPath + '"/>' +
+          '<path class="line" d="' + linePath + '"/>' +
+          '<line class="crosshair" x1="0" y1="' + TREND_TOP + '" x2="0" y2="' + TREND_BOTTOM + '"/>' +
+          '<circle class="hover-dot" r="4" cx="0" cy="0"/>' +
+          '<circle class="dot-end" r="3.5" cx="' + last.x.toFixed(1) + '" cy="' + last.y.toFixed(1) + '"/>' +
+        "</svg>" +
+        '<div class="trend-tooltip" data-tooltip="' + id + '"></div>' +
+      "</div>" +
+      '<div class="trend-axis"><span>' + data[0][0] + '</span><span>' + data[n - 1][0] + "</span></div>" +
+    "</div>";
+  }
+  function wireTrendHover() {
+    Array.prototype.forEach.call(document.querySelectorAll(".trend-wrap"), function (wrap) {
+      var id = wrap.getAttribute("data-trend");
+      var data = TREND_DATA[id];
+      var svg = wrap.querySelector(".trend-svg");
+      var crosshair = svg.querySelector(".crosshair");
+      var hoverDot = svg.querySelector(".hover-dot");
+      var tooltip = wrap.querySelector(".trend-tooltip");
+      var n = data.length, xStep = TREND_VB_W / (n - 1);
+      var maxV = Math.max.apply(null, data.map(function (d) { return d[1]; }).concat([1])) * 1.15;
+
+      wrap.addEventListener("mousemove", function (e) {
+        var rect = svg.getBoundingClientRect();
+        var relX = (e.clientX - rect.left) / rect.width * TREND_VB_W;
+        var i = Math.max(0, Math.min(n - 1, Math.round(relX / xStep)));
+        var vbX = i * xStep, vbY = TREND_BOTTOM - (data[i][1] / maxV) * (TREND_BOTTOM - TREND_TOP);
+        var scaleX = rect.width / TREND_VB_W, scaleY = rect.height / TREND_VB_H;
+
+        crosshair.setAttribute("x1", vbX); crosshair.setAttribute("x2", vbX);
+        crosshair.style.opacity = 1;
+        hoverDot.setAttribute("cx", vbX); hoverDot.setAttribute("cy", vbY);
+        hoverDot.style.opacity = 1;
+
+        tooltip.textContent = data[i][0] + " — " + data[i][1];
+        tooltip.style.left = (vbX * scaleX) + "px";
+        tooltip.style.top = (vbY * scaleY - 8) + "px";
+        tooltip.classList.add("show");
+      });
+      wrap.addEventListener("mouseleave", function () {
+        crosshair.style.opacity = 0;
+        hoverDot.style.opacity = 0;
+        tooltip.classList.remove("show");
+      });
+    });
+  }
+
   var CHART_MENU_OPTS = [["bars", "▤", "Столбики"], ["pie", "◕", "Пирог"], ["donut", "◔", "Кольцо"]];
   function chartMenuHtml(id, active) {
     return '<button class="chart-menu-btn" data-chart-toggle="' + id + '" title="Тип графика">⋮</button>' +
@@ -462,6 +554,9 @@
           var cls = p.status === "paid" ? "good" : "warn";
           return "<tr><td class=\"num\">" + p.amount + '</td><td><span class="badge ' + cls + '">' + p.status + "</span></td><td>" + p.at + "</td></tr>";
         }).join("") + "</table></div>";
+    }},
+    daily_users: { group: "Тренды", title: "Пользователи в день", render: function () {
+      return trendCard("daily_users", "Пользователи в день", DAILY_USERS);
     }}
   };
   var WIDGET_IDS = Object.keys(WIDGETS);
@@ -471,7 +566,8 @@
     stat_users: { cols: 2, rows: 1 }, stat_brands: { cols: 2, rows: 1 }, stat_campaigns: { cols: 2, rows: 1 },
     stat_published: { cols: 2, rows: 1 }, stat_conversions: { cols: 2, rows: 1 }, stat_balance: { cols: 2, rows: 1 },
     creatives_status: { cols: 3, rows: 2 }, conversions_status: { cols: 3, rows: 2 }, funnel: { cols: 3, rows: 3 },
-    reconciliation: { cols: 3, rows: 2 }, fraud_queue: { cols: 3, rows: 2 }, payouts: { cols: 3, rows: 2 }
+    reconciliation: { cols: 3, rows: 2 }, fraud_queue: { cols: 3, rows: 2 }, payouts: { cols: 3, rows: 2 },
+    daily_users: { cols: 4, rows: 2 }
   };
   var GRID_COLS = 6, MIN_COLS = 1, MAX_ROWS = 5, CELL_H = 116, GAP = 12;
 
@@ -595,6 +691,7 @@
     wireMoveHandles();
     wireSizeHandles();
     wireChartMenus();
+    wireTrendHover();
     syncCellWidth();
   }
 
