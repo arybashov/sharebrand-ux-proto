@@ -154,10 +154,14 @@
     font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
     color: var(--ink-faint); flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+  /* Third icon-button from the right, in line with the ⋮ chart-menu (2nd) and the decorative
+     ⠿ drag hint (1st) — same absolute-positioned row, not inline after the title text (which
+     used to put it wherever the text happened to end). */
   .title-edit-btn {
-    position: relative; z-index: 5; /* the drag-zone strip (z-index:3) sits over this row otherwise */
-    flex: 0 0 auto; background: none; border: 0; cursor: pointer; color: var(--ink-faint); font-size: 11px;
-    opacity: 0; transition: opacity 0.15s ease; padding: 2px 4px; border-radius: 5px; line-height: 1;
+    position: absolute; top: 8px; right: 58px; z-index: 5; width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: 0; cursor: pointer; color: var(--ink-faint); font-size: 13px;
+    opacity: 0; transition: opacity 0.15s ease; padding: 0; border-radius: 6px; line-height: 1;
   }
   .grid-item:hover .title-edit-btn { opacity: 1; }
   .title-edit-btn:hover { color: var(--ink); background: var(--line); }
