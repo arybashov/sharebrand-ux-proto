@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShareBrand — бесплатный AI за честную рекламу</title>
+<style>
+  /* Same brand tokens as prototype.html (coral / Mini App variant) — one visual language
+     across mini-app, dashboard and landing prototypes. */
+  :root {
+    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
+    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
+    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
+    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
+    --good: #1FAE7D; --good-soft: #DCF3EA;
+    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
+    --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
+      --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
+      --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
+      --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
+      --good: #34D399; --good-soft: #123527;
+      --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
+    --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
+    --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
+    --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
+    --good: #34D399; --good-soft: #123527;
+    --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
+  }
+  :root[data-theme="light"] {
+    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
+    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
+    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
+    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
+    --good: #1FAE7D; --good-soft: #DCF3EA;
+    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+  }
+  .site-tabs { display: flex; gap: 4px; padding: 10px 20px 0; background: var(--surface); }
+  .site-tabs a {
+    font-size: 12.5px; font-weight: 700; text-decoration: none; color: var(--ink-dim);
+    padding: 8px 14px; border-radius: 8px 8px 0 0;
+  }
+  .site-tabs a.active { color: var(--ink); background: var(--bg); }
+  .site-tabs a:hover:not(.active) { color: var(--ink); }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 72px 0; }
+  .proto-note {
+    text-align: center; font-size: 11.5px; font-weight: 700; color: var(--ink-faint);
+    letter-spacing: 0.03em; text-transform: uppercase; padding-top: 14px;
+  }
+
+  /* ---- Hero ---- */
+  .hero { background: var(--surface); border-bottom: 1px solid var(--line); }
+  .hero .wrap { padding-top: 64px; padding-bottom: 56px; text-align: center; }
+  .badge-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 22px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+    padding: 6px 12px; border-radius: 100px; background: var(--surface-2); color: var(--ink-dim);
+    border: 1px solid var(--line);
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+  h1 {
+    font-size: clamp(30px, 5vw, 48px); line-height: 1.12; letter-spacing: -0.02em; font-weight: 800;
+    margin: 0 auto 18px; max-width: 780px;
+  }
+  h1 .hl { color: var(--accent); }
+  .hero-sub {
+    font-size: 17px; line-height: 1.55; color: var(--ink-dim); max-width: 600px; margin: 0 auto 34px;
+  }
+  .cta-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
+    padding: 14px 24px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid transparent; transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
+  .btn.secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+  .btn.ghost { background: none; color: var(--ink-dim); border-color: var(--line); }
+
+  /* ---- How it works ---- */
+  .section-eyebrow {
+    text-align: center; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent-soft-ink); margin-bottom: 10px;
+  }
+  h2 { text-align: center; font-size: clamp(22px, 3.4vw, 30px); letter-spacing: -0.01em; margin: 0 0 44px; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .step {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 22px;
+  }
+  .step .num {
+    width: 34px; height: 34px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-soft-ink);
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; margin-bottom: 16px;
+  }
+  .step h3 { font-size: 15.5px; margin: 0 0 8px; letter-spacing: -0.005em; }
+  .step p { font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
+
+  /* ---- Audience split ---- */
+  .audience-section { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .audience-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .audience-card {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 20px; padding: 30px 28px;
+    display: flex; flex-direction: column;
+  }
+  .audience-card .icon { font-size: 26px; margin-bottom: 14px; }
+  .audience-card h3 { font-size: 19px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .audience-card .tag { font-size: 12.5px; color: var(--ink-dim); margin-bottom: 18px; }
+  .audience-card ul { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+  .audience-card li { display: flex; gap: 9px; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .audience-card li .ck { color: var(--good); font-weight: 800; flex: 0 0 auto; }
+  .audience-card .btn { margin-top: auto; align-self: flex-start; }
+
+  /* ---- Trust ---- */
+  .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .trust-item {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 18px; text-align: center;
+  }
+  .trust-item .ic { font-size: 22px; margin-bottom: 10px; }
+  .trust-item h4 { font-size: 13px; margin: 0 0 6px; letter-spacing: -0.005em; }
+  .trust-item p { font-size: 12px; line-height: 1.5; color: var(--ink-dim); margin: 0; }
+
+  /* ---- Final CTA ---- */
+  .final-cta { text-align: center; }
+  .final-cta .panel {
+    background: linear-gradient(160deg, var(--accent-soft), var(--surface) 60%);
+    border: 1px solid var(--line); border-radius: 24px; padding: 52px 32px;
+  }
+  .final-cta h2 { margin-bottom: 14px; }
+  .final-cta p { color: var(--ink-dim); font-size: 14.5px; max-width: 480px; margin: 0 auto 28px; }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; }
+  .footer-row {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    font-size: 12px; color: var(--ink-faint);
+  }
+  .footer-row a { color: var(--ink-faint); }
+  .footer-links { display: flex; gap: 16px; }
+
+  @media (max-width: 760px) {
+    .steps, .audience-grid { grid-template-columns: 1fr; }
+    .trust-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+  <nav class="site-tabs">
+    <a href="landing.html" class="active">🚀 Лендинг</a>
+    <a href="index.html">📱 Mini App</a>
+    <a href="dashboard.html">📊 Дашборд (новый)</a>
+    <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="badge-row">
+        <span class="badge"><span class="dot"></span> MVP в разработке</span>
+        <span class="badge">🇧🇾 ООО, резидент ПВТ</span>
+      </div>
+      <h1>Бесплатный доступ к топовым <span class="hl">AI-моделям</span> — за честную рекламу в своих соцсетях</h1>
+      <p class="hero-sub">
+        ShareBrand клонирует твой голос прямо на устройстве и публикует персонализированные ролики брендов
+        через официальные API площадок — только те, что ты сам одобрил. Взамен — бесплатный доступ к флагманским AI.
+      </p>
+      <div class="cta-row">
+        <a class="btn primary" href="index.html?variant=native">👤 Я автор — хочу бесплатный AI</a>
+        <a class="btn secondary" href="dashboard-current.html">🏢 Я бренд — хочу продвижение</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="section-eyebrow">Как это работает</div>
+      <h2>Три шага — и ты в деле</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <h3>Клонируешь голос — на своём устройстве</h3>
+          <p>Биометрия голоса никогда не покидает телефон. Модель голоса остаётся локально — на серверы не отправляется.</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h3>Одобряешь ролики — по одному</h3>
+          <p>Локальный агент собирает персонализированный ролик под конкретный бренд. Публикация — только после твоего одобрения, поштучно.</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h3>Получаешь доступ к AI</h3>
+          <p>За каждое опубликованное продвижение — начисления на баланс бесплатного доступа к флагманским AI-моделям.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="audience-section">
+    <div class="wrap">
+      <div class="section-eyebrow">Кому это подходит</div>
+      <h2>Два входа — один продукт</h2>
+      <div class="audience-grid">
+        <div class="audience-card">
+          <div class="icon">🎙️</div>
+          <h3>Для авторов</h3>
+          <div class="tag">Хочешь бесплатный доступ к AI</div>
+          <ul>
+            <li><span class="ck">✓</span> Бесплатный доступ к флагманским AI-моделям (Yandex GPT и другие)</li>
+            <li><span class="ck">✓</span> Голос клонируется на устройстве — биометрия никуда не уходит</li>
+            <li><span class="ck">✓</span> Ты одобряешь каждый ролик лично, до публикации</li>
+            <li><span class="ck">✓</span> Публикация — только через официальные API площадок</li>
+          </ul>
+          <a class="btn primary" href="index.html?variant=native">Открыть Mini App →</a>
+        </div>
+        <div class="audience-card">
+          <div class="icon">🏢</div>
+          <h3>Для брендов</h3>
+          <div class="tag">Хочешь продвижение с оплатой за результат</div>
+          <ul>
+            <li><span class="ck">✓</span> Оплата только за подтверждённые конверсии</li>
+            <li><span class="ck">✓</span> Маркировка рекламы BY/RU/EU + C2PA — из коробки, блокирующий гейт</li>
+            <li><span class="ck">✓</span> Эскроу-депозит через ЮKassa / ЭРИП</li>
+            <li><span class="ck">✓</span> Прозрачная сверка публикаций и конверсий в кабинете</li>
+          </ul>
+          <a class="btn primary" href="dashboard-current.html">Открыть кабинет →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="trust">
+    <div class="wrap">
+      <div class="section-eyebrow">Почему это безопасно</div>
+      <h2>Доверие — не на словах, а в архитектуре</h2>
+      <div class="trust-grid">
+        <div class="trust-item">
+          <div class="ic">🔒</div>
+          <h4>On-device биометрия</h4>
+          <p>Голосовая модель хранится и считается локально, не на серверах ShareBrand.</p>
+        </div>
+        <div class="trust-item">
+          <div class="ic">✋</div>
+          <h4>Поштучное одобрение</h4>
+          <p>Ни один ролик не публикуется без явного согласия автора на конкретную публикацию.</p>
+        </div>
+        <div class="trust-item">
+          <div class="ic">🏷️</div>
+          <h4>Маркировка рекламы</h4>
+          <p>Disclosure BY/RU/EU и C2PA — блокирующий гейт, публикация без маркировки невозможна.</p>
+        </div>
+        <div class="trust-item">
+          <div class="ic">🔌</div>
+          <h4>Только официальные API</h4>
+          <p>Публикация через официальные API площадок — без обхода правил и автоматизации вне API.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final-cta">
+    <div class="wrap">
+      <div class="panel">
+        <h2>Готов попробовать?</h2>
+        <p>Открой прототип Mini App и пройди путь автора от согласия до первого одобренного ролика.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="index.html?variant=native">👤 Начать как автор</a>
+          <a class="btn ghost" href="dashboard-current.html">🏢 Смотреть кабинет бренда</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap footer-row">
+      <div>© ShareBrand · ООО, резидент ПВТ (Беларусь) · MVP в разработке</div>
+      <div class="footer-links">
+        <a href="index.html">Mini App</a>
+        <a href="dashboard.html">Дашборд</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="proto-note">UX-прототип · не финальные тексты и не боевой домен</div>
+</body>
+</html>
