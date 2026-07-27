@@ -63,8 +63,8 @@
     flex: 0 0 auto; display: flex; align-items: flex-start; justify-content: space-between;
     gap: 16px; padding: 14px 20px; background: var(--bar); border-bottom: 1px solid var(--line);
   }
-  header h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
-  header .sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 2px; }
+  header h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -0.01em; cursor: text; }
+  header .sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 2px; cursor: text; }
   button.tool {
     font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
     border: 1px solid var(--line); background: var(--panel); color: var(--ink);
@@ -146,12 +146,28 @@
     padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
   }
   .card.stat { gap: 6px; }
-  .card-title {
+  /* Every widget gets ONE title row, rendered by renderGrid() itself (not by each widget's own
+     render()) — a single place to make titles editable in place, rather than baking an edit
+     affordance into 13 different card templates. */
+  .card-title-row { display: flex; align-items: center; gap: 4px; }
+  .card-title-row .card-title-text {
     font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-    color: var(--ink-faint); display: flex; align-items: center; gap: 6px;
+    color: var(--ink-faint); flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .card-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); }
-  .card-title .dot.good { background: var(--good); }
+  .title-edit-btn {
+    position: relative; z-index: 5; /* the drag-zone strip (z-index:3) sits over this row otherwise */
+    flex: 0 0 auto; background: none; border: 0; cursor: pointer; color: var(--ink-faint); font-size: 11px;
+    opacity: 0; transition: opacity 0.15s ease; padding: 2px 4px; border-radius: 5px; line-height: 1;
+  }
+  .grid-item:hover .title-edit-btn { opacity: 1; }
+  .title-edit-btn:hover { color: var(--ink); background: var(--line); }
+  .title-edit-input, .inline-edit-input {
+    font-family: inherit; font-size: inherit; font-weight: inherit; background: var(--bg); color: var(--ink);
+    border: 1px solid var(--accent); border-radius: 5px; padding: 1px 6px;
+  }
+  .title-edit-input {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; flex: 1 1 auto; min-width: 0;
+  }
   .stat-value { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
   .stat-value.good { color: var(--good); }
   .stat-sub { font-size: 12px; color: var(--ink-dim); }
@@ -322,8 +338,8 @@
   </nav>
   <header>
     <div>
-      <h1>Ops-дашборд — настраиваемый прототип</h1>
-      <div class="sub">Карточки можно перетаскивать мышкой. Данные мокнутые (по образцу apps/web/lib/mock.ts). Пресеты и порядок сохраняются в этом браузере.</div>
+      <h1 id="pageTitle" title="Нажмите, чтобы переименовать">Ops-дашборд — настраиваемый прототип</h1>
+      <div class="sub" id="pageSub" title="Нажмите, чтобы переименовать">Карточки можно перетаскивать мышкой. Данные мокнутые (по образцу apps/web/lib/mock.ts). Пресеты и порядок сохраняются в этом браузере.</div>
     </div>
     <button class="tool" id="resetBtn">↺ Сбросить</button>
   </header>
@@ -362,6 +378,7 @@
       </div>
       <div class="drawer-foot">
         <button class="tool primary" id="savePresetBtn">💾 Сохранить как пресет</button>
+        <button class="tool" id="exportPresetBtn" style="display:none">📤 Экспортировать пресет (JSON)</button>
         <button class="tool" id="deletePresetBtn" style="display:none">🗑 Удалить пресет «<span id="deletePresetName"></span>»</button>
       </div>
     </div>
@@ -371,6 +388,10 @@
 (function () {
   "use strict";
   var STORE_KEY = "sb_ops_dashboard_v1";
+  var DEFAULT_HEADER = {
+    title: "Ops-дашборд — настраиваемый прототип",
+    sub: "Карточки можно перетаскивать мышкой. Данные мокнутые (по образцу apps/web/lib/mock.ts). Пресеты и порядок сохраняются в этом браузере."
+  };
 
   // ---- Widget catalog: id -> {group, title, render()} — data grounded in apps/web/lib/mock.ts ----
   var OV = {
@@ -442,10 +463,9 @@
     ratio: [["meter", "Метр (доля от лимита)"]]
   };
 
-  function statCard(title, value, sub, good) {
-    return '<div class="card stat"><div class="card-title"><span class="dot' + (good ? " good" : "") + '"></span>' + title + '</div>' +
-      '<div class="stat-value' + (good ? " good" : "") + '">' + value + '</div>' +
-      (sub ? '<div class="stat-sub">' + sub + '</div>' : "") + '</div>';
+  function statCard(value, sub, good) {
+    return '<div class="stat-value' + (good ? " good" : "") + '">' + value + '</div>' +
+      (sub ? '<div class="stat-sub">' + sub + '</div>' : "");
   }
   function barsInner(rows, max) {
     return '<div class="bars">' + rows.map(function (r) {
@@ -476,7 +496,7 @@
   // a part-to-whole, so it doesn't belong on the bars/pie/donut menu (dataviz skill: pick the
   // form by the job first). Ships with a hover crosshair+tooltip, per the skill's default.
   var TREND_VB_W = 300, TREND_VB_H = 88, TREND_TOP = 6, TREND_BOTTOM = 78;
-  function trendCard(id, title, data) {
+  function trendCard(id, data) {
     var n = data.length;
     var maxV = Math.max.apply(null, data.map(function (d) { return d[1]; }).concat([1])) * 1.15;
     var xStep = TREND_VB_W / (n - 1);
@@ -486,9 +506,7 @@
     var linePath = pts.map(function (p, i) { return (i === 0 ? "M" : "L") + p.x.toFixed(1) + "," + p.y.toFixed(1); }).join(" ");
     var areaPath = linePath + " L" + pts[n - 1].x.toFixed(1) + "," + TREND_BOTTOM + " L" + pts[0].x.toFixed(1) + "," + TREND_BOTTOM + " Z";
     var last = pts[n - 1];
-    return '<div class="card">' +
-      '<div class="card-title">' + title + '</div>' +
-      '<div class="trend-wrap" data-trend="' + id + '">' +
+    return '<div class="trend-wrap" data-trend="' + id + '">' +
         '<svg class="trend-svg" viewBox="0 0 ' + TREND_VB_W + ' ' + TREND_VB_H + '" preserveAspectRatio="none" data-n="' + n + '">' +
           '<line class="baseline" x1="0" y1="' + TREND_BOTTOM + '" x2="' + TREND_VB_W + '" y2="' + TREND_BOTTOM + '"/>' +
           '<path class="area" d="' + areaPath + '"/>' +
@@ -499,8 +517,7 @@
         "</svg>" +
         '<div class="trend-tooltip" data-tooltip="' + id + '"></div>' +
       "</div>" +
-      '<div class="trend-axis"><span>' + data[0][0] + '</span><span>' + data[n - 1][0] + "</span></div>" +
-    "</div>";
+      '<div class="trend-axis"><span>' + data[0][0] + '</span><span>' + data[n - 1][0] + "</span></div>";
   }
   function wireTrendHover() {
     Array.prototype.forEach.call(document.querySelectorAll(".trend-wrap"), function (wrap) {
@@ -554,12 +571,11 @@
   }
   // A single ratio against a limit — its own form (dataviz skill), not a 1-slice pie or a
   // 1-bar bar chart. Same-ramp track: fill and background both come from the sequential ramp.
-  function meterCard(id, title, value, max) {
+  function meterCard(value, max) {
     var pct = Math.max(0, Math.min(100, value / max * 100));
-    return '<div class="card"><div class="card-title">' + title + '</div>' +
-      '<div class="meter-value">' + value + ' <span class="meter-of">/ ' + max + '</span></div>' +
+    return '<div class="meter-value">' + value + ' <span class="meter-of">/ ' + max + '</span></div>' +
       '<div class="meter-track"><div class="meter-fill" style="width:' + pct.toFixed(1) + '%"></div></div>' +
-      '<div class="stat-sub">' + pct.toFixed(0) + "%</div></div>";
+      '<div class="stat-sub">' + pct.toFixed(0) + "%</div>";
   }
 
   var CHART_MENU_OPTS = [["bars", "▤", "Столбики"], ["pie", "◕", "Пирог"], ["donut", "◔", "Кольцо"], ["stacked", "▬", "Стек"]];
@@ -575,7 +591,7 @@
   // Shared renderer for the three "Графики" widgets — dispatches on the widget's own saved
   // chart type (default bars). Colors: fixed categorical slots for identity data, the
   // sequential ramp for ordinal data (funnel stages) — per the dataviz skill's color-by-job rule.
-  function chartCard(id, title, rows, colors, footer) {
+  function chartCard(id, rows, colors, footer) {
     var type = (state.chartType[id]) || "bars";
     var total = rows.reduce(function (s, r) { return s + r[1]; }, 0) || 1;
     var body = type === "bars"
@@ -583,41 +599,41 @@
       : type === "stacked"
       ? stackedInner(rows, colors, total)
       : pieInner(rows, colors, type === "donut", total);
-    var html = '<div class="card">' + chartMenuHtml(id, type) + '<div class="card-title">' + title + "</div>" + body;
+    var html = chartMenuHtml(id, type) + body;
     if (footer) html += '<div class="stat-sub" style="margin-top:2px">' + footer + "</div>";
-    return html + "</div>";
+    return html;
   }
   var CATEGORICAL_6 = ["--series-1", "--series-2", "--series-3", "--series-4", "--series-5", "--series-6"];
   var SEQUENTIAL_10 = ["--seq-1","--seq-2","--seq-3","--seq-4","--seq-5","--seq-6","--seq-7","--seq-8","--seq-9","--seq-10"];
 
   var WIDGETS = {
-    stat_users: { group: "Метрики", title: "Пользователи", render: function () {
-      return statCard("Пользователи", OV.users.total, OV.users.consented + " с согласием 99-З");
+    stat_users: { group: "Метрики", title: "Пользователи", cardClass: "stat", render: function () {
+      return statCard(OV.users.total, OV.users.consented + " с согласием 99-З");
     }},
-    stat_brands: { group: "Метрики", title: "Бренды (active)", render: function () {
-      return statCard("Бренды (active)", OV.brands.active, "из " + OV.brands.total + " всего");
+    stat_brands: { group: "Метрики", title: "Бренды (active)", cardClass: "stat", render: function () {
+      return statCard(OV.brands.active, "из " + OV.brands.total + " всего");
     }},
-    stat_campaigns: { group: "Метрики", title: "Кампании (active)", render: function () {
-      return statCard("Кампании (active)", OV.brands.campaigns_active);
+    stat_campaigns: { group: "Метрики", title: "Кампании (active)", cardClass: "stat", render: function () {
+      return statCard(OV.brands.campaigns_active);
     }},
-    stat_published: { group: "Метрики", title: "Опубликовано", render: function () {
-      return statCard("Опубликовано", OV.creatives.published, "креативов", true);
+    stat_published: { group: "Метрики", title: "Опубликовано", cardClass: "stat", render: function () {
+      return statCard(OV.creatives.published, "креативов", true);
     }},
-    stat_conversions: { group: "Метрики", title: "Конверсии (confirmed)", render: function () {
-      return statCard("Конверсии (confirmed)", OV.conversions.confirmed, null, true);
+    stat_conversions: { group: "Метрики", title: "Конверсии (confirmed)", cardClass: "stat", render: function () {
+      return statCard(OV.conversions.confirmed, null, true);
     }},
-    stat_balance: { group: "Метрики", title: "AI-баланс", render: function () {
-      return statCard("AI-баланс", OV.ledger.total_credits + " BYN", OV.ledger.accruals + " начислений");
+    stat_balance: { group: "Метрики", title: "AI-баланс", cardClass: "stat", render: function () {
+      return statCard(OV.ledger.total_credits + " BYN", OV.ledger.accruals + " начислений");
     }},
     creatives_status: { group: "Графики", title: "Креативы по статусам", chartable: true, render: function () {
-      return chartCard("creatives_status", "Креативы по статусам", [
+      return chartCard("creatives_status", [
         ["published", OV.creatives.published], ["pending", OV.creatives.pending],
         ["rejected", OV.creatives.rejected], ["approved", OV.creatives.approved],
         ["sent", OV.creatives.sent], ["failed", OV.creatives.failed]
       ], CATEGORICAL_6);
     }},
     conversions_status: { group: "Графики", title: "Конверсии по статусам", chartable: true, render: function () {
-      return chartCard("conversions_status", "Конверсии", [
+      return chartCard("conversions_status", [
         ["confirmed", OV.conversions.confirmed], ["refunded", OV.conversions.refunded], ["hold", OV.conversions.hold]
       ], CATEGORICAL_6, "Сумма конверсий: <strong>" + OV.conversions.total_byn + " BYN</strong>");
     }},
@@ -625,39 +641,38 @@
       var type = state.chartType.funnel || "bars";
       if (type === "bars") {
         var max = Math.max.apply(null, FUNNEL.map(function (f) { return f[2]; }));
-        return '<div class="card">' + chartMenuHtml("funnel", "bars") + '<div class="card-title">Воронка L0–L9</div><div class="bars">' +
+        return chartMenuHtml("funnel", "bars") + '<div class="bars">' +
           FUNNEL.map(function (f) {
             return '<div class="funnel-row"><span class="label">' + f[0] + '</span>' +
               '<span class="track"><span class="fill" style="width:' + (f[2] / max * 100) + '%"></span></span>' +
               '<span class="val">' + f[2] + '</span></div>';
-          }).join("") + "</div></div>";
+          }).join("") + "</div>";
       }
-      return chartCard("funnel", "Воронка L0–L9", FUNNEL.map(function (f) { return [f[0], f[2]]; }), SEQUENTIAL_10);
+      return chartCard("funnel", FUNNEL.map(function (f) { return [f[0], f[2]]; }), SEQUENTIAL_10);
     }},
-    reconciliation: { group: "Таблицы", title: "Сверка публикаций ↔ конверсии", render: function () {
-      return '<div class="card"><div class="card-title">Сверка публикаций ↔ конверсии (G4)</div><table>' +
+    reconciliation: { group: "Таблицы", title: "Сверка публикаций ↔ конверсии (G4)", render: function () {
+      return '<table>' +
         '<tr><td>Опубликовано креативов</td><td class="num">' + RECON.published_total + '</td></tr>' +
         '<tr><td>Из них с конверсиями</td><td class="num" style="color:var(--good)">' + RECON.with_conv + '</td></tr>' +
         '<tr><td>Опубликовано без конверсий</td><td class="num">' + RECON.without_conv + '</td></tr>' +
         '<tr><td>Orphan-конверсии</td><td class="num" style="color:var(--warn)">' + RECON.orphan + '</td></tr>' +
         '<tr><td>На ручном разборе (hold)</td><td class="num" style="color:var(--warn)">' + RECON.pending_hold + '</td></tr>' +
-        "</table></div>";
+        "</table>";
     }},
-    fraud_queue: { group: "Таблицы", title: "Фрод-очередь", render: function () {
-      return '<div class="card"><div class="card-title">Фрод-очередь · на ручном разборе</div>' +
-        HOLD.map(function (h) {
-          return '<div class="list-row"><span><strong>' + h.brand + '</strong><br><span class="meta">' + h.promo + " · " + h.order + " · " + h.at + '</span></span><span class="amt">' + h.amount + "</span></div>";
-        }).join("") + "</div>";
+    fraud_queue: { group: "Таблицы", title: "Фрод-очередь · на ручном разборе", render: function () {
+      return HOLD.map(function (h) {
+        return '<div class="list-row"><span><strong>' + h.brand + '</strong><br><span class="meta">' + h.promo + " · " + h.order + " · " + h.at + '</span></span><span class="amt">' + h.amount + "</span></div>";
+      }).join("");
     }},
     payouts: { group: "Таблицы", title: "Выплаты", render: function () {
-      return '<div class="card"><div class="card-title">Выплаты</div><table><tr><th>Сумма</th><th>Статус</th><th>Когда</th></tr>' +
+      return '<table><tr><th>Сумма</th><th>Статус</th><th>Когда</th></tr>' +
         PAYOUTS.map(function (p) {
           var cls = p.status === "paid" ? "good" : "warn";
           return "<tr><td class=\"num\">" + p.amount + '</td><td><span class="badge ' + cls + '">' + p.status + "</span></td><td>" + p.at + "</td></tr>";
-        }).join("") + "</table></div>";
+        }).join("") + "</table>";
     }},
     daily_users: { group: "Тренды", title: "Пользователи в день", render: function () {
-      return trendCard("daily_users", "Пользователи в день", DAILY_USERS);
+      return trendCard("daily_users", DAILY_USERS);
     }}
   };
   var WIDGET_IDS = Object.keys(WIDGETS);
@@ -683,14 +698,20 @@
       var raw = localStorage.getItem(STORE_KEY);
       if (raw) return JSON.parse(raw);
     } catch (e) {}
-    return { customPresets: [], customWidgets: [], lastActivePreset: "overview", lastWidgets: null, lastLayout: {}, lastChartType: {} };
+    return {
+      customPresets: [], customWidgets: [], presetNameOverrides: {}, header: null,
+      lastActivePreset: "overview", lastWidgets: null, lastLayout: {}, lastChartType: {}, lastTitleOverrides: {}
+    };
   }
   function saveStore() {
     localStorage.setItem(STORE_KEY, JSON.stringify(store));
   }
 
   var store = loadStore();
-  store.customWidgets = store.customWidgets || []; // older saved states predate the custom-chart builder
+  // Older saved states predate later features — backfill defaults so they don't crash.
+  store.customWidgets = store.customWidgets || [];
+  store.presetNameOverrides = store.presetNameOverrides || {};
+  store.lastTitleOverrides = store.lastTitleOverrides || {};
 
   // A custom widget is just a {sourceId, title} pointing at an existing DATA_SOURCES entry —
   // rendered through the same chartCard/trendCard/meterCard as every built-in widget, so it
@@ -699,10 +720,11 @@
     var src = DATA_SOURCES[cfg.sourceId];
     return {
       group: "Кастомные", title: cfg.title, custom: true, chartable: src.kind === "categorical",
+      cardClass: src.kind === "ratio" ? "stat" : null,
       render: function () {
-        if (src.kind === "trend") { TREND_DATA[cfg.id] = src.data(); return trendCard(cfg.id, cfg.title, src.data()); }
-        if (src.kind === "ratio") return meterCard(cfg.id, cfg.title, src.value(), src.max());
-        return chartCard(cfg.id, cfg.title, src.rows(), src.colorSet === "seq" ? SEQUENTIAL_10 : CATEGORICAL_6);
+        if (src.kind === "trend") { TREND_DATA[cfg.id] = src.data(); return trendCard(cfg.id, src.data()); }
+        if (src.kind === "ratio") return meterCard(src.value(), src.max());
+        return chartCard(cfg.id, src.rows(), src.colorSet === "seq" ? SEQUENTIAL_10 : CATEGORICAL_6);
       }
     };
   }
@@ -717,10 +739,11 @@
     WIDGET_IDS = Object.keys(WIDGETS);
   }
   function deleteCustomWidget(id) {
-    if (!confirm("Удалить график «" + WIDGETS[id].title + "» насовсем?")) return;
+    if (!confirm("Удалить график «" + widgetTitle(id) + "» насовсем?")) return;
     store.customWidgets = store.customWidgets.filter(function (c) { return c.id !== id; });
     delete WIDGETS[id];
     delete state.layout[id];
+    delete state.titleOverrides[id];
     delete TREND_DATA[id];
     var idx = state.widgets.indexOf(id);
     if (idx !== -1) state.widgets.splice(idx, 1);
@@ -735,9 +758,33 @@
     layout: store.lastLayout || {},
     // Chart type (bars/pie/donut) is global per widget, independent of which preset is active —
     // if you like "conversions" as a donut, that's true wherever it shows up.
-    chartType: store.lastChartType || {}
+    chartType: store.lastChartType || {},
+    // Renamed titles are global per widget too, same philosophy as chartType above.
+    titleOverrides: store.lastTitleOverrides || {}
   };
   registerCustomWidgets(); // adds any previously-saved custom charts into WIDGETS before first render
+
+  function widgetTitle(id) {
+    var w = WIDGETS[id];
+    return state.titleOverrides[id] || (w && w.title) || id;
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function setWidgetTitle(id, val) {
+    val = (val || "").trim();
+    var def = WIDGETS[id] && WIDGETS[id].title;
+    if (!val || val === def) delete state.titleOverrides[id];
+    else state.titleOverrides[id] = val;
+    var cfg = store.customWidgets.filter(function (c) { return c.id === id; })[0];
+    if (cfg && val) cfg.title = val; // keep the custom-widget's own record in sync (drawer/export)
+    store.lastTitleOverrides = state.titleOverrides;
+    saveStore();
+    renderGrid(); // content-only — no position/size changed, no FLIP needed
+    renderDrawer();
+  }
 
   function layoutFor(id) { return state.layout[id]; }
 
@@ -770,8 +817,22 @@
     });
   }
 
-  function allPresets() { return BUILTIN_PRESETS.concat(store.customPresets); }
+  // Shared presets come from a static presets.json committed to the repo — GitHub Pages has no
+  // server to write to, so "shared across everyone" means "checked into git", not live-editable
+  // by any visitor. Loaded async; renderPresetPills() re-runs once they arrive.
+  var sharedPresets = [];
+  function loadSharedPresets() {
+    fetch("presets.json").then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (data) {
+        sharedPresets = (data || []).map(function (p) { return Object.assign({}, p, { shared: true }); });
+        renderPresetPills();
+      })
+      .catch(function () { sharedPresets = []; });
+  }
+  function allPresets() { return BUILTIN_PRESETS.concat(sharedPresets, store.customPresets); }
   function findPreset(id) { return allPresets().filter(function (p) { return p.id === id; })[0]; }
+  function presetDisplayName(p) { return store.presetNameOverrides[p.id] || p.name; }
+  function isLockedPreset(p) { return !p || p.builtin || p.shared; } // can't overwrite/delete in place
 
   function el(sel) { return document.querySelector(sel); }
 
@@ -788,8 +849,9 @@
     var dirty = isDirty();
     wrap.innerHTML = allPresets().map(function (p) {
       var active = p.id === state.activePresetId;
-      return '<button class="pill' + (active ? " active" : "") + '" data-preset="' + p.id + '">' +
-        p.name + (active && dirty ? '<span class="dirty-dot" title="Есть несохранённые изменения"></span>' : "") +
+      return '<button class="pill' + (active ? " active" : "") + '" data-preset="' + p.id + '" title="Двойной клик — переименовать">' +
+        (p.shared ? "🌐 " : "") + escapeHtml(presetDisplayName(p)) +
+        (active && dirty ? '<span class="dirty-dot" title="Есть несохранённые изменения"></span>' : "") +
         "</button>";
     }).join("");
     Array.prototype.forEach.call(wrap.querySelectorAll("[data-preset]"), function (btn) {
@@ -800,7 +862,19 @@
         state.layout = p.layout ? JSON.parse(JSON.stringify(p.layout)) : {};
         persistAndRender();
       });
+      btn.addEventListener("dblclick", function (e) {
+        e.stopPropagation();
+        var p = findPreset(btn.getAttribute("data-preset"));
+        var name = prompt("Новое название пресета:", presetDisplayName(p));
+        if (!name || !name.trim()) return;
+        store.presetNameOverrides[p.id] = name.trim();
+        saveStore();
+        renderPresetPills();
+      });
     });
+    var saveBtn = el("#savePresetBtn");
+    var active = findPreset(state.activePresetId);
+    saveBtn.textContent = (active && !isLockedPreset(active)) ? "💾 Сохранить изменения" : "💾 Сохранить как пресет";
   }
 
   function renderGrid() {
@@ -815,16 +889,22 @@
     grid.className = "grid";
     var maxBottom = 0;
     grid.innerHTML = state.widgets.map(function (id) {
-      if (!WIDGETS[id]) return "";
+      var w = WIDGETS[id];
+      if (!w) return "";
       var L = state.layout[id];
       maxBottom = Math.max(maxBottom, L.y + L.rows);
       var style = "left:calc(" + L.x + " * (var(--cell-w) + var(--gap)));" +
         "top:" + (L.y * (CELL_H + GAP)) + "px;" +
         "width:calc(" + L.cols + " * var(--cell-w) + " + (L.cols - 1) + " * var(--gap));" +
         "height:" + (L.rows * CELL_H + (L.rows - 1) * GAP) + "px;";
+      var cardCls = "card" + (w.cardClass ? " " + w.cardClass : "");
       return '<div class="grid-item" data-wid="' + id + '" style="' + style + '">' +
         '<div class="drag-zone" title="Потяните за верх, чтобы переместить"><span class="drag-handle">⠿</span></div>' +
-        WIDGETS[id].render() +
+        '<div class="' + cardCls + '">' +
+          '<div class="card-title-row"><span class="card-title-text">' + escapeHtml(widgetTitle(id)) + '</span>' +
+            '<button class="title-edit-btn" data-edit-title="' + id + '" title="Переименовать">✎</button></div>' +
+          w.render() +
+        "</div>" +
         '<span class="size-handle" title="Потяните, чтобы изменить размер"></span>' +
         "</div>";
     }).join("");
@@ -833,7 +913,38 @@
     wireSizeHandles();
     wireChartMenus();
     wireTrendHover();
+    wireEditableTitles();
     syncCellWidth();
+  }
+
+  // Click the pencil next to any widget's title to rename it in place (global per widget,
+  // same philosophy as chart type). Enter/blur commits, Escape re-renders to discard.
+  function wireEditableTitles() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-edit-title]"), function (btn) {
+      btn.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var id = btn.getAttribute("data-edit-title");
+        var row = btn.closest(".card-title-row");
+        var span = row.querySelector(".card-title-text");
+        var input = document.createElement("input");
+        input.type = "text";
+        input.className = "title-edit-input";
+        input.value = widgetTitle(id);
+        row.replaceChild(input, span);
+        input.focus();
+        input.select();
+        var done = false;
+        function commit() { if (done) return; done = true; setWidgetTitle(id, input.value); }
+        input.addEventListener("keydown", function (ev) {
+          ev.stopPropagation();
+          if (ev.key === "Enter") commit();
+          else if (ev.key === "Escape") { done = true; renderGrid(); }
+        });
+        input.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); });
+        input.addEventListener("blur", commit);
+      });
+    });
   }
 
   // Keep --cell-w in sync with the real rendered column width so the drawn grid lines
@@ -1020,7 +1131,7 @@
     shown.innerHTML = state.widgets.map(function (id, idx) {
       var w = WIDGETS[id];
       return '<div class="shown-row" data-id="' + id + '">' +
-        '<span class="grip">⠿</span><span class="name">' + w.title + "</span>" +
+        '<span class="grip">⠿</span><span class="name">' + escapeHtml(widgetTitle(id)) + "</span>" +
         '<button data-act="up" ' + (idx === 0 ? "disabled style=\"opacity:.3\"" : "") + ' title="Выше">↑</button>' +
         '<button data-act="down" ' + (idx === state.widgets.length - 1 ? "disabled style=\"opacity:.3\"" : "") + ' title="Ниже">↓</button>' +
         (w.custom ? '<button data-act="delete" class="delete" title="Удалить график насовсем">🗑</button>' : "") +
@@ -1041,7 +1152,7 @@
       avail.innerHTML = Object.keys(groups).map(function (g) {
         return '<div class="avail-group"><div class="section-label" style="margin-top:4px">' + g + "</div>" +
           groups[g].map(function (id) {
-            return '<div class="avail-row"><span>' + WIDGETS[id].title + '</span><span class="row-actions">' +
+            return '<div class="avail-row"><span>' + escapeHtml(widgetTitle(id)) + '</span><span class="row-actions">' +
               (WIDGETS[id].custom ? '<button class="del-btn" data-del="' + id + '" title="Удалить насовсем">🗑</button>' : "") +
               '<button class="add-btn" data-add="' + id + '">+ Добавить</button></span></div>';
           }).join("") + "</div>";
@@ -1072,11 +1183,14 @@
 
     var activePreset = findPreset(state.activePresetId);
     var delBtn = el("#deletePresetBtn");
-    if (activePreset && !activePreset.builtin && !isDirty()) {
+    var exportBtn = el("#exportPresetBtn");
+    if (activePreset && !isLockedPreset(activePreset)) {
       delBtn.style.display = "flex";
-      el("#deletePresetName").textContent = activePreset.name;
+      el("#deletePresetName").textContent = presetDisplayName(activePreset);
+      exportBtn.style.display = "flex";
     } else {
       delBtn.style.display = "none";
+      exportBtn.style.display = "none";
     }
   }
 
@@ -1121,7 +1235,19 @@
   el("#drawerClose").addEventListener("click", function () { el("#drawerBackdrop").classList.remove("show"); });
   el("#drawerBackdrop").addEventListener("click", function (e) { if (e.target === el("#drawerBackdrop")) el("#drawerBackdrop").classList.remove("show"); });
 
+  // Smart save: overwrites the active preset in place if it's already one of yours (local,
+  // not builtin/shared); otherwise falls back to "save as" since builtin/shared presets aren't
+  // yours to overwrite. Delete no longer requires a clean (non-dirty) state first — it always
+  // works on any of your own presets.
   el("#savePresetBtn").addEventListener("click", function () {
+    var active = findPreset(state.activePresetId);
+    if (active && !isLockedPreset(active)) {
+      active.widgets = state.widgets.slice();
+      active.layout = JSON.parse(JSON.stringify(state.layout));
+      saveStore();
+      renderPresetPills();
+      return;
+    }
     var name = prompt("Название пресета:", "Мой набор");
     if (!name) return;
     var id = "custom_" + Date.now();
@@ -1131,22 +1257,76 @@
   });
   el("#deletePresetBtn").addEventListener("click", function () {
     var p = findPreset(state.activePresetId);
-    if (!p || p.builtin) return;
-    if (!confirm("Удалить пресет «" + p.name + "»?")) return;
+    if (!p || isLockedPreset(p)) return;
+    if (!confirm("Удалить пресет «" + presetDisplayName(p) + "»?")) return;
     store.customPresets = store.customPresets.filter(function (x) { return x.id !== p.id; });
+    delete store.presetNameOverrides[p.id];
     state.activePresetId = "overview";
     state.widgets = BUILTIN_PRESETS[0].widgets.slice();
     state.layout = {};
     persistAndRender();
   });
+  // No live write-back to GitHub Pages (that would mean shipping a repo-write token to every
+  // visitor's browser — unsafe). This copies the preset JSON so it can be pasted into
+  // presets.json and committed — "shared" means "checked into git", not "self-service."
+  el("#exportPresetBtn").addEventListener("click", function () {
+    var p = findPreset(state.activePresetId);
+    if (!p || isLockedPreset(p)) return;
+    var payload = { id: p.id, name: presetDisplayName(p), widgets: p.widgets, layout: p.layout || {} };
+    var json = JSON.stringify(payload, null, 2);
+    try { navigator.clipboard.writeText(json); } catch (e) {}
+    prompt("JSON пресета (скопирован в буфер обмена). Чтобы сделать его общим для всех — добавьте в presets.json в репозитории:", json);
+  });
   el("#resetBtn").addEventListener("click", function () {
     localStorage.removeItem(STORE_KEY);
     store.customWidgets.forEach(function (cfg) { delete WIDGETS[cfg.id]; delete TREND_DATA[cfg.id]; });
     store = loadStore();
-    state = { activePresetId: "overview", widgets: BUILTIN_PRESETS[0].widgets.slice(), layout: {}, chartType: {} };
+    state = { activePresetId: "overview", widgets: BUILTIN_PRESETS[0].widgets.slice(), layout: {}, chartType: {}, titleOverrides: {} };
     WIDGET_IDS = Object.keys(WIDGETS);
     persistAndRender();
+    renderHeader();
   });
+
+  // ---- Header title/subtitle: click to edit in place, same pattern as widget titles.
+  function renderHeader() {
+    var h = store.header || {};
+    el("#pageTitle").textContent = h.title || DEFAULT_HEADER.title;
+    el("#pageSub").textContent = h.sub || DEFAULT_HEADER.sub;
+  }
+  function makeHeaderEditable(elId, key, multiline) {
+    var node = el("#" + elId);
+    node.addEventListener("click", function () {
+      if (node.querySelector("input")) return;
+      var current = node.textContent;
+      var input = document.createElement("input");
+      input.type = "text";
+      input.className = "inline-edit-input";
+      input.style.width = "100%";
+      input.value = current;
+      node.textContent = "";
+      node.appendChild(input);
+      input.focus();
+      input.select();
+      var done = false;
+      function commit() {
+        if (done) return;
+        done = true;
+        var val = input.value.trim();
+        store.header = store.header || {};
+        store.header[key] = val || DEFAULT_HEADER[key];
+        saveStore();
+        renderHeader();
+      }
+      input.addEventListener("keydown", function (ev) {
+        ev.stopPropagation();
+        if (ev.key === "Enter") commit();
+        else if (ev.key === "Escape") { done = true; renderHeader(); }
+      });
+      input.addEventListener("blur", commit);
+    });
+  }
+  makeHeaderEditable("pageTitle", "title");
+  makeHeaderEditable("pageSub", "sub");
 
   // ---- Custom chart builder form: pick a data source, then a chart form valid for that
   // source's kind, give it a title, and it's added as a new widget instance right away.
@@ -1181,10 +1361,12 @@
     renderBuilder();
   });
 
+  renderHeader();
   renderPresetPills();
   renderGrid();
   renderDrawer();
   renderBuilder();
+  loadSharedPresets();
 })();
 </script>
 </body>

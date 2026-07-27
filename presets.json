@@ -1,0 +1,8 @@
+[
+  {
+    "id": "shared_demo",
+    "name": "Общий пример (из репозитория)",
+    "widgets": ["stat_users", "stat_published", "creatives_status", "daily_users"],
+    "layout": {}
+  }
+]
