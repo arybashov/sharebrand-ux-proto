@@ -3,15 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ShareBrand — бесплатный AI за честную рекламу</title>
+<title>vdole.ai — оплата за результат, AI-инструменты промоутерам</title>
 <style>
-  /* Same brand tokens as prototype.html (coral / Mini App variant) — one visual language
-     across mini-app, dashboard and landing prototypes. */
   :root {
     --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
     --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
     --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
     --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
+    --accent-2: #6C5CE7; --accent-2-soft: #E9E5FF;
     --good: #1FAE7D; --good-soft: #DCF3EA;
     --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
     --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -22,6 +21,7 @@
       --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
       --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
       --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
+      --accent-2: #8B7CF6; --accent-2-soft: #241F42;
       --good: #34D399; --good-soft: #123527;
       --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
     }
@@ -31,6 +31,7 @@
     --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
     --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
     --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
+    --accent-2: #8B7CF6; --accent-2-soft: #241F42;
     --good: #34D399; --good-soft: #123527;
     --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
   }
@@ -39,6 +40,7 @@
     --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
     --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
     --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
+    --accent-2: #6C5CE7; --accent-2-soft: #E9E5FF;
     --good: #1FAE7D; --good-soft: #DCF3EA;
     --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
   }
@@ -49,25 +51,63 @@
     margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui);
     -webkit-font-smoothing: antialiased;
   }
-  .site-tabs { display: flex; gap: 4px; padding: 10px 20px 0; background: var(--surface); }
-  .site-tabs a {
-    font-size: 12.5px; font-weight: 700; text-decoration: none; color: var(--ink-dim);
-    padding: 8px 14px; border-radius: 8px 8px 0 0;
-  }
-  .site-tabs a.active { color: var(--ink); background: var(--bg); }
-  .site-tabs a:hover:not(.active) { color: var(--ink); }
+  ::selection { background: var(--accent-soft); color: var(--accent-soft-ink); }
 
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
-  section { padding: 72px 0; }
-  .proto-note {
-    text-align: center; font-size: 11.5px; font-weight: 700; color: var(--ink-faint);
-    letter-spacing: 0.03em; text-transform: uppercase; padding-top: 14px;
+  /* ---- internal cross-proto strip (not part of the real product) ---- */
+  .site-tabs {
+    display: flex; gap: 4px; padding: 8px 20px; background: var(--surface); border-bottom: 1px solid var(--line);
+    font-size: 0;
   }
+  .site-tabs a {
+    font-size: 11.5px; font-weight: 700; text-decoration: none; color: var(--ink-faint);
+    padding: 6px 12px; border-radius: 7px;
+  }
+  .site-tabs a.active { color: var(--ink); background: var(--surface-2); }
+  .site-tabs a:hover:not(.active) { color: var(--ink-dim); }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- Sticky product nav (mirrors the live sharebrand.ru header) ---- */
+  .pnav {
+    position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line);
+  }
+  .pnav .wrap { display: flex; align-items: center; gap: 28px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
+  .brand .mark {
+    width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(155deg, var(--accent), var(--accent-2));
+    color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; letter-spacing: 0.01em;
+  }
+  .pnav nav { display: flex; gap: 22px; flex: 1 1 auto; }
+  .pnav nav a { font-size: 13.5px; font-weight: 600; color: var(--ink-dim); text-decoration: none; }
+  .pnav nav a:hover { color: var(--ink); }
+  .pnav .pill-btn {
+    font-size: 13px; font-weight: 700; text-decoration: none; color: var(--ink); background: var(--surface-2);
+    border: 1px solid var(--line-strong); padding: 8px 15px; border-radius: 100px; white-space: nowrap;
+  }
+  .pnav .pill-btn:hover { border-color: var(--accent); }
+  @media (max-width: 760px) { .pnav nav { display: none; } }
+
+  section { padding: 88px 0; position: relative; }
+  .section-eyebrow {
+    display: inline-flex; font-size: 11.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--accent-soft-ink); background: var(--accent-soft); padding: 5px 12px; border-radius: 100px;
+  }
+  .section-head { text-align: center; margin: 0 auto 48px; max-width: 620px; }
+  .section-head .section-eyebrow { margin-bottom: 14px; }
+  h2 { font-size: clamp(24px, 3.4vw, 32px); letter-spacing: -0.015em; margin: 0 0 10px; }
+  .section-head p { font-size: 15px; color: var(--ink-dim); line-height: 1.55; margin: 0; }
 
   /* ---- Hero ---- */
-  .hero { background: var(--surface); border-bottom: 1px solid var(--line); }
-  .hero .wrap { padding-top: 64px; padding-bottom: 56px; text-align: center; }
-  .badge-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 22px; }
+  .hero {
+    background:
+      radial-gradient(560px 360px at 82% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+      radial-gradient(480px 320px at 6% 8%, color-mix(in srgb, var(--accent-2) 14%, transparent), transparent 70%),
+      var(--surface);
+    border-bottom: 1px solid var(--line); overflow: hidden;
+  }
+  .hero .wrap { padding: 76px 24px 64px; display: grid; grid-template-columns: 1.05fr 0.85fr; gap: 48px; align-items: center; }
+  .badge-row { display: flex; gap: 8px; margin-bottom: 22px; }
   .badge {
     display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
     padding: 6px 12px; border-radius: 100px; background: var(--surface-2); color: var(--ink-dim);
@@ -75,84 +115,182 @@
   }
   .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
   h1 {
-    font-size: clamp(30px, 5vw, 48px); line-height: 1.12; letter-spacing: -0.02em; font-weight: 800;
-    margin: 0 auto 18px; max-width: 780px;
+    font-size: clamp(32px, 4.2vw, 46px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 800;
+    margin: 0 0 18px;
   }
-  h1 .hl { color: var(--accent); }
-  .hero-sub {
-    font-size: 17px; line-height: 1.55; color: var(--ink-dim); max-width: 600px; margin: 0 auto 34px;
-  }
-  .cta-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  h1 .hl { background: linear-gradient(100deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero-sub { font-size: 16.5px; line-height: 1.6; color: var(--ink-dim); max-width: 520px; margin: 0 0 30px; }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
   .btn {
     font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
-    padding: 14px 24px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px;
-    border: 1px solid transparent; transition: transform 0.12s ease, box-shadow 0.12s ease;
+    padding: 14px 22px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid transparent; transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
   }
   .btn:active { transform: scale(0.97); }
   .btn.primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
   .btn.secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
   .btn.ghost { background: none; color: var(--ink-dim); border-color: var(--line); }
+  .btn.block { width: 100%; justify-content: center; }
+  .platform-row { display: flex; align-items: center; gap: 10px; margin-top: 30px; font-size: 12px; color: var(--ink-faint); font-weight: 600; }
+  .platform-row .sep { opacity: 0.5; }
 
-  /* ---- How it works ---- */
-  .section-eyebrow {
-    text-align: center; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--accent-soft-ink); margin-bottom: 10px;
+  /* Hero mockup: a stylized "review → clone voice → publish" card, pure CSS, no external assets */
+  .hero-mock { position: relative; }
+  .mock-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow);
+    padding: 22px; max-width: 340px; margin: 0 auto;
   }
-  h2 { text-align: center; font-size: clamp(22px, 3.4vw, 30px); letter-spacing: -0.01em; margin: 0 0 44px; }
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .step {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 22px;
+  .mock-card .mrow { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .mock-card .avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(155deg, var(--accent), var(--accent-2));
+    flex: 0 0 auto;
   }
-  .step .num {
-    width: 34px; height: 34px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-soft-ink);
-    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; margin-bottom: 16px;
+  .mock-card .mname { font-size: 13px; font-weight: 700; }
+  .mock-card .mtag { font-size: 11.5px; color: var(--ink-faint); }
+  .mock-card .review-box {
+    background: var(--surface-2); border-radius: 14px; padding: 14px; font-size: 12.5px; line-height: 1.5; color: var(--ink-dim);
+    margin-bottom: 14px;
   }
-  .step h3 { font-size: 15.5px; margin: 0 0 8px; letter-spacing: -0.005em; }
-  .step p { font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
+  .mock-card .wave {
+    display: flex; align-items: flex-end; gap: 3px; height: 34px; margin-bottom: 14px; padding: 0 2px;
+  }
+  .mock-card .wave span {
+    flex: 1 1 auto; background: linear-gradient(180deg, var(--accent), var(--accent-2)); border-radius: 3px; opacity: 0.85;
+  }
+  .mock-card .mfoot { display: flex; align-items: center; justify-content: space-between; }
+  .mock-card .mstatus { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--good); }
+  .mock-card .mstatus .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+  .mock-card .mchip {
+    font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 100px; background: var(--accent-soft); color: var(--accent-soft-ink);
+  }
+  .mock-float {
+    position: absolute; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 10px 13px; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; gap: 7px;
+  }
+  .mock-float.f1 { top: -14px; right: -14px; color: var(--good); }
+  .mock-float.f2 { bottom: -16px; left: -18px; color: var(--ink); }
+  @media (max-width: 900px) {
+    .hero .wrap { grid-template-columns: 1fr; }
+    .hero-mock { max-width: 380px; margin: 0 auto; }
+  }
+
+  /* ---- Timeline (how it works) ---- */
+  .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; position: relative; }
+  .timeline::before {
+    content: ""; position: absolute; top: 23px; left: 12%; right: 12%; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: 0.35;
+  }
+  .tl-step { position: relative; padding: 0 14px; text-align: center; }
+  .tl-step .num {
+    width: 46px; height: 46px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent);
+    color: var(--accent-soft-ink); display: flex; align-items: center; justify-content: center; font-weight: 800;
+    font-size: 17px; margin: 0 auto 18px; position: relative; z-index: 1;
+  }
+  .tl-step:nth-child(2) .num, .tl-step:nth-child(4) .num { border-color: var(--accent-2); color: var(--accent-2); }
+  .tl-step h3 { font-size: 14.5px; margin: 0 0 8px; letter-spacing: -0.005em; }
+  .tl-step p { font-size: 13px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
+  @media (max-width: 820px) {
+    .timeline { grid-template-columns: 1fr; gap: 28px; text-align: left; }
+    .timeline::before { display: none; }
+    .tl-step { padding: 0 0 0 60px; text-align: left; }
+    .tl-step .num { position: absolute; left: 0; top: 0; margin: 0; }
+    .tl-step::after {
+      content: ""; position: absolute; left: 22px; top: 46px; bottom: -28px; width: 2px;
+      background: var(--line-strong);
+    }
+    .tl-step:last-child::after { display: none; }
+  }
 
   /* ---- Audience split ---- */
   .audience-section { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .audience-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
   .audience-card {
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: 20px; padding: 30px 28px;
-    display: flex; flex-direction: column;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 20px; padding: 32px 28px;
+    display: flex; flex-direction: column; position: relative;
   }
-  .audience-card .icon { font-size: 26px; margin-bottom: 14px; }
-  .audience-card h3 { font-size: 19px; margin: 0 0 8px; letter-spacing: -0.01em; }
-  .audience-card .tag { font-size: 12.5px; color: var(--ink-dim); margin-bottom: 18px; }
-  .audience-card ul { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-direction: column; gap: 11px; }
-  .audience-card li { display: flex; gap: 9px; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .audience-card.promoters { border-color: var(--line-strong); }
+  .audience-card .icon {
+    width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 16px; background: var(--accent-soft);
+  }
+  .audience-card.promoters .icon { background: var(--accent-2-soft); }
+  .audience-card h3 { font-size: 19px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .audience-card .tag { font-size: 13px; color: var(--ink-dim); margin-bottom: 20px; }
+  .audience-card ul { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .audience-card li { display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
   .audience-card li .ck { color: var(--good); font-weight: 800; flex: 0 0 auto; }
   .audience-card .btn { margin-top: auto; align-self: flex-start; }
+  .pilot-badge {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; margin-top: auto;
+    color: var(--accent-soft-ink); background: var(--accent-soft); padding: 9px 14px; border-radius: 12px;
+  }
+
+  /* ---- App section ---- */
+  .app-section .wrap { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 48px; align-items: center; }
+  .app-panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 26px;
+  }
+  .app-panel .badge { margin-bottom: 16px; }
+  .app-panel ul { list-style: none; margin: 18px 0 22px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .app-panel li { display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .app-panel li .ck { color: var(--good); font-weight: 800; }
+  .app-note { font-size: 12px; color: var(--ink-faint); line-height: 1.5; margin-top: 14px; }
+  .app-visual {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 20px; padding: 30px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .app-visual .row { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .app-visual .row .ic { font-size: 18px; }
+  .app-visual .row .t { font-size: 13px; font-weight: 700; }
+  .app-visual .row .s { font-size: 11.5px; color: var(--ink-faint); }
+  @media (max-width: 900px) { .app-section .wrap { grid-template-columns: 1fr; } }
+
+  /* ---- Investor demo ---- */
+  .demo-panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 34px;
+    display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
+  }
+  .demo-panel ol { margin: 0; padding: 0 0 0 20px; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; color: var(--ink-dim); }
+  .demo-panel ol b { color: var(--ink); }
+  .demo-panel .note { font-size: 11.5px; color: var(--ink-faint); margin-top: 14px; }
+  @media (max-width: 700px) { .demo-panel { grid-template-columns: 1fr; text-align: left; } }
 
   /* ---- Trust ---- */
   .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
   .trust-item {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 18px; text-align: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px 18px; text-align: center;
   }
-  .trust-item .ic { font-size: 22px; margin-bottom: 10px; }
+  .trust-item .ic {
+    width: 40px; height: 40px; border-radius: 11px; background: var(--surface-2); display: flex; align-items: center;
+    justify-content: center; font-size: 19px; margin: 0 auto 14px;
+  }
   .trust-item h4 { font-size: 13px; margin: 0 0 6px; letter-spacing: -0.005em; }
   .trust-item p { font-size: 12px; line-height: 1.5; color: var(--ink-dim); margin: 0; }
 
   /* ---- Final CTA ---- */
-  .final-cta { text-align: center; }
   .final-cta .panel {
-    background: linear-gradient(160deg, var(--accent-soft), var(--surface) 60%);
-    border: 1px solid var(--line); border-radius: 24px; padding: 52px 32px;
+    background: linear-gradient(155deg, var(--accent-soft), var(--surface) 55%, var(--accent-2-soft));
+    border: 1px solid var(--line); border-radius: 24px; padding: 56px 32px; text-align: center;
   }
   .final-cta h2 { margin-bottom: 14px; }
-  .final-cta p { color: var(--ink-dim); font-size: 14.5px; max-width: 480px; margin: 0 auto 28px; }
+  .final-cta p { color: var(--ink-dim); font-size: 14.5px; max-width: 460px; margin: 0 auto 28px; }
+  .final-cta .cta-row { justify-content: center; }
 
-  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; }
+  footer { border-top: 1px solid var(--line); padding: 26px 0; }
   .footer-row {
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
     font-size: 12px; color: var(--ink-faint);
   }
-  .footer-row a { color: var(--ink-faint); }
-  .footer-links { display: flex; gap: 16px; }
+  .footer-row a { color: var(--ink-faint); text-decoration: none; }
+  .footer-row a:hover { color: var(--ink-dim); }
+  .footer-links { display: flex; gap: 18px; }
+  .proto-note {
+    text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-faint);
+    letter-spacing: 0.03em; text-transform: uppercase; padding: 14px 0 22px; background: var(--surface);
+  }
 
   @media (max-width: 760px) {
-    .steps, .audience-grid { grid-template-columns: 1fr; }
+    .steps, .audience-grid, .trust-grid { grid-template-columns: 1fr; }
     .trust-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
@@ -165,105 +303,210 @@
     <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
   </nav>
 
-  <header class="hero">
+  <div class="pnav">
     <div class="wrap">
-      <div class="badge-row">
-        <span class="badge"><span class="dot"></span> MVP в разработке</span>
-        <span class="badge">🇧🇾 ООО, резидент ПВТ</span>
+      <a class="brand" href="#top"><span class="mark">SB</span> vdole.ai</a>
+      <nav>
+        <a href="#how">Как работает</a>
+        <a href="#audience">Для кого</a>
+        <a href="#app">Приложение</a>
+      </nav>
+      <a class="pill-btn" href="https://crm.sharebrand.ru">Кабинет бренда →</a>
+    </div>
+  </div>
+
+  <header class="hero" id="top">
+    <div class="wrap">
+      <div>
+        <div class="badge-row">
+          <span class="badge"><span class="dot"></span> AD-FUNDED AI-ПЛАТФОРМА</span>
+        </div>
+        <h1>Бренды платят за <span class="hl">результат</span>. Промоутеры получают AI-инструменты.</h1>
+        <p class="hero-sub">
+          Проверенный обзор бренда уникализируется под каждого промоутера и публикуется его голосом.
+          Голос клонируется и хранится на устройстве. Оплата — только за подтверждённые конверсии.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="https://crm.sharebrand.ru">Запустить кампанию →</a>
+          <a class="btn secondary" href="https://t.me/ShareBrand_bot">▶ Демо в Telegram</a>
+        </div>
+        <div class="platform-row">
+          <span>VK</span><span class="sep">·</span><span>Telegram</span><span class="sep">·</span><span>MAX</span>
+        </div>
       </div>
-      <h1>Бесплатный доступ к топовым <span class="hl">AI-моделям</span> — за честную рекламу в своих соцсетях</h1>
-      <p class="hero-sub">
-        ShareBrand клонирует твой голос прямо на устройстве и публикует персонализированные ролики брендов
-        через официальные API площадок — только те, что ты сам одобрил. Взамен — бесплатный доступ к флагманским AI.
-      </p>
-      <div class="cta-row">
-        <a class="btn primary" href="index.html?variant=native">👤 Я автор — хочу бесплатный AI</a>
-        <a class="btn secondary" href="dashboard-current.html">🏢 Я бренд — хочу продвижение</a>
+      <div class="hero-mock">
+        <div class="mock-card">
+          <div class="mrow">
+            <div class="avatar"></div>
+            <div>
+              <div class="mname">Обзор · Nova Cosmetics</div>
+              <div class="mtag">уникализирован под промоутера</div>
+            </div>
+          </div>
+          <div class="review-box">«Пользуюсь этой сывороткой уже месяц — кожа реально стала ровнее...»</div>
+          <div class="wave">
+            <span style="height:40%"></span><span style="height:70%"></span><span style="height:35%"></span>
+            <span style="height:90%"></span><span style="height:55%"></span><span style="height:75%"></span>
+            <span style="height:30%"></span><span style="height:60%"></span><span style="height:45%"></span>
+            <span style="height:80%"></span><span style="height:50%"></span><span style="height:65%"></span>
+          </div>
+          <div class="mfoot">
+            <span class="mstatus"><span class="dot"></span> Голос — на устройстве</span>
+            <span class="mchip">Маркировано RU</span>
+          </div>
+        </div>
+        <div class="mock-float f1">✓ Конверсия подтверждена</div>
+        <div class="mock-float f2">🔒 Биометрия on-device</div>
       </div>
     </div>
   </header>
 
   <section id="how">
     <div class="wrap">
-      <div class="section-eyebrow">Как это работает</div>
-      <h2>Три шага — и ты в деле</h2>
-      <div class="steps">
-        <div class="step">
+      <div class="section-head">
+        <span class="section-eyebrow">Как это работает</span>
+        <h2>ИИ меняет упаковку, а не выдумывает рекламу заново</h2>
+        <p>Творческое ядро — обзор, который уже конвертит. ИИ уникализирует его под каждого промоутера, сохраняя оффер и факты.</p>
+      </div>
+      <div class="timeline">
+        <div class="tl-step">
           <div class="num">1</div>
-          <h3>Клонируешь голос — на своём устройстве</h3>
-          <p>Биометрия голоса никогда не покидает телефон. Модель голоса остаётся локально — на серверы не отправляется.</p>
+          <h3>Проверенный обзор</h3>
+          <p>Берём обзор бренда, который уже работает и конвертит.</p>
         </div>
-        <div class="step">
+        <div class="tl-step">
           <div class="num">2</div>
-          <h3>Одобряешь ролики — по одному</h3>
-          <p>Локальный агент собирает персонализированный ролик под конкретный бренд. Публикация — только после твоего одобрения, поштучно.</p>
+          <h3>Уникализация</h3>
+          <p>ИИ адаптирует упаковку под промоутера, сохраняя оффер и факты.</p>
         </div>
-        <div class="step">
+        <div class="tl-step">
           <div class="num">3</div>
-          <h3>Получаешь доступ к AI</h3>
-          <p>За каждое опубликованное продвижение — начисления на баланс бесплатного доступа к флагманским AI-моделям.</p>
+          <h3>Голос на устройстве</h3>
+          <p>Ролик озвучивается голосом промоутера на его устройстве.</p>
+        </div>
+        <div class="tl-step">
+          <div class="num">4</div>
+          <h3>Публикация и оплата</h3>
+          <p>Одобрение → публикация → бренд платит за подтверждённую конверсию.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="audience-section">
+  <section class="audience-section" id="audience">
     <div class="wrap">
-      <div class="section-eyebrow">Кому это подходит</div>
-      <h2>Два входа — один продукт</h2>
+      <div class="section-head">
+        <span class="section-eyebrow">Для кого</span>
+        <h2>Две стороны платформы — у каждой свой путь</h2>
+        <p>Бренды приносят проверенный оффер и платят за результат. Промоутеры получают AI-инструменты и вознаграждение за подтверждённые конверсии.</p>
+      </div>
       <div class="audience-grid">
         <div class="audience-card">
-          <div class="icon">🎙️</div>
-          <h3>Для авторов</h3>
-          <div class="tag">Хочешь бесплатный доступ к AI</div>
-          <ul>
-            <li><span class="ck">✓</span> Бесплатный доступ к флагманским AI-моделям (Yandex GPT и другие)</li>
-            <li><span class="ck">✓</span> Голос клонируется на устройстве — биометрия никуда не уходит</li>
-            <li><span class="ck">✓</span> Ты одобряешь каждый ролик лично, до публикации</li>
-            <li><span class="ck">✓</span> Публикация — только через официальные API площадок</li>
-          </ul>
-          <a class="btn primary" href="index.html?variant=native">Открыть Mini App →</a>
-        </div>
-        <div class="audience-card">
           <div class="icon">🏢</div>
-          <h3>Для брендов</h3>
-          <div class="tag">Хочешь продвижение с оплатой за результат</div>
+          <h3>Бренды</h3>
+          <div class="tag">Оплата за результат, без креативного риска</div>
           <ul>
-            <li><span class="ck">✓</span> Оплата только за подтверждённые конверсии</li>
-            <li><span class="ck">✓</span> Маркировка рекламы BY/RU/EU + C2PA — из коробки, блокирующий гейт</li>
-            <li><span class="ck">✓</span> Эскроу-депозит через ЮKassa / ЭРИП</li>
-            <li><span class="ck">✓</span> Прозрачная сверка публикаций и конверсий в кабинете</li>
+            <li><span class="ck">✓</span> Кампания на основе вашего проверенного обзора</li>
+            <li><span class="ck">✓</span> Десятки персонализированных роликов под промоутеров</li>
+            <li><span class="ck">✓</span> Реклама маркируется по юрисдикции аудитории (BY / RU / EU)</li>
+            <li><span class="ck">✓</span> Отчёты и метрики по конверсиям в кабинете</li>
           </ul>
-          <a class="btn primary" href="dashboard-current.html">Открыть кабинет →</a>
+          <a class="btn primary" href="https://crm.sharebrand.ru">Войти в кабинет →</a>
+        </div>
+        <div class="audience-card promoters">
+          <div class="icon">🎙️</div>
+          <h3>Промоутеры</h3>
+          <div class="tag">AI-инструменты и вознаграждение за результат</div>
+          <ul>
+            <li><span class="ck">✓</span> Доступ к AI-инструментам платформы</li>
+            <li><span class="ck">✓</span> Ролики вашим голосом — синтез на вашем устройстве</li>
+            <li><span class="ck">✓</span> Вознаграждение за подтверждённые конверсии — на баланс</li>
+            <li><span class="ck">✓</span> Вывод средств — при выполнении условий платформы</li>
+            <li><span class="ck">✓</span> Биометрия хранится на устройстве, ролики одобряете вручную</li>
+          </ul>
+          <span class="pilot-badge">🔒 Сейчас — закрытый пилот, по приглашению</span>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="app-section" id="app">
+    <div class="wrap">
+      <div class="app-panel">
+        <span class="badge">DESKTOP · macOS / Windows</span>
+        <h2 style="text-align:left; margin-top:16px;">Тонкий публикатор, безопасный по дизайну</h2>
+        <p style="color:var(--ink-dim); font-size:14px; line-height:1.55; margin:0;">
+          Запись голоса, лента проверенных обзоров, озвучка на устройстве и публикация в один клик.
+          Голос обрабатывается на вашем компьютере.
+        </p>
+        <ul>
+          <li><span class="ck">✓</span> Запись и клон голоса — на вашем устройстве (биометрия on-device)</li>
+          <li><span class="ck">✓</span> Лента проверенных обзоров → озвучка вашим голосом</li>
+          <li><span class="ck">✓</span> Ручное одобрение каждого ролика перед публикацией</li>
+          <li><span class="ck">✓</span> Секреты — в системном хранилище ОС, без лишних разрешений</li>
+        </ul>
+        <a class="btn primary block" href="https://t.me/ShareBrand_bot">▶ Открыть демо в Telegram</a>
+        <p class="app-note">
+          Реальная десктоп-бета (macOS/Windows) раздаётся на sharebrand.ru. В этом прототипе ведём на демо-бот,
+          чтобы не публиковать неподписанные бинарники чужого прод-окружения из нашего дизайн-репозитория.
+        </p>
+      </div>
+      <div class="app-visual">
+        <div class="row"><span class="ic">🎙️</span><div><div class="t">Запись голоса</div><div class="s">30 секунд — и модель готова, локально</div></div></div>
+        <div class="row"><span class="ic">📋</span><div><div class="t">Лента обзоров</div><div class="s">Проверенные офферы брендов, по одному</div></div></div>
+        <div class="row"><span class="ic">🔊</span><div><div class="t">Озвучка на устройстве</div><div class="s">Голосовая модель не покидает компьютер</div></div></div>
+        <div class="row"><span class="ic">✅</span><div><div class="t">Одобрение → публикация</div><div class="s">Ничего не публикуется без вашего клика</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="demo">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-eyebrow">Демо для инвесторов</span>
+        <h2>Попробуйте полный цикл за 2 минуты</h2>
+      </div>
+      <div class="demo-panel">
+        <ol>
+          <li>Откройте бота → <b>«/start»</b> → запишите голос</li>
+          <li>Выберите ролик из каталога → <b>«Сделать своим голосом»</b></li>
+          <li>Одобрите → публикация — рабочий сквозной цикл</li>
+        </ol>
+        <a class="btn primary" href="https://t.me/ShareBrand_bot">▶ Открыть демо в Telegram</a>
+      </div>
+      <p class="demo-panel-note note" style="text-align:center; font-size:11.5px; color:var(--ink-faint); margin-top:14px;">
+        Демо-аккаунт создаётся автоматически при «/start». Каталог и озвучка доступны сразу.
+      </p>
     </div>
   </section>
 
   <section id="trust">
     <div class="wrap">
-      <div class="section-eyebrow">Почему это безопасно</div>
-      <h2>Доверие — не на словах, а в архитектуре</h2>
+      <div class="section-head">
+        <span class="section-eyebrow">Приватность по дизайну</span>
+        <h2>Голос и голосовая модель — только на устройстве промоутера</h2>
+        <p>Реклама маркируется по юрисдикции аудитории. Компания — резидент ПВТ (Беларусь).</p>
+      </div>
       <div class="trust-grid">
         <div class="trust-item">
           <div class="ic">🔒</div>
-          <h4>On-device биометрия</h4>
-          <p>Голосовая модель хранится и считается локально, не на серверах ShareBrand.</p>
-        </div>
-        <div class="trust-item">
-          <div class="ic">✋</div>
-          <h4>Поштучное одобрение</h4>
-          <p>Ни один ролик не публикуется без явного согласия автора на конкретную публикацию.</p>
+          <h4>Биометрия on-device</h4>
+          <p>Голосовая модель хранится и считается локально, не на серверах платформы.</p>
         </div>
         <div class="trust-item">
           <div class="ic">🏷️</div>
-          <h4>Маркировка рекламы</h4>
-          <p>Disclosure BY/RU/EU и C2PA — блокирующий гейт, публикация без маркировки невозможна.</p>
+          <h4>Маркировка BY / RU / EU</h4>
+          <p>Disclosure по юрисдикции аудитории — блокирующий гейт при публикации.</p>
         </div>
         <div class="trust-item">
-          <div class="ic">🔌</div>
-          <h4>Только официальные API</h4>
-          <p>Публикация через официальные API площадок — без обхода правил и автоматизации вне API.</p>
+          <div class="ic">✋</div>
+          <h4>Ручное одобрение роликов</h4>
+          <p>Ни один ролик не публикуется без явного согласия промоутера.</p>
+        </div>
+        <div class="trust-item">
+          <div class="ic">🇧🇾</div>
+          <h4>Резидент ПВТ</h4>
+          <p>Юрисдикция — ООО, резидент Парка высоких технологий (Беларусь).</p>
         </div>
       </div>
     </div>
@@ -272,11 +515,11 @@
   <section class="final-cta">
     <div class="wrap">
       <div class="panel">
-        <h2>Готов попробовать?</h2>
-        <p>Открой прототип Mini App и пройди путь автора от согласия до первого одобренного ролика.</p>
+        <h2>Готовы платить за результат?</h2>
+        <p>Заведите кампанию в кабинете бренда. Промоутерам — закрытый пилот по приглашению.</p>
         <div class="cta-row">
-          <a class="btn primary" href="index.html?variant=native">👤 Начать как автор</a>
-          <a class="btn ghost" href="dashboard-current.html">🏢 Смотреть кабинет бренда</a>
+          <a class="btn primary" href="https://crm.sharebrand.ru">Кабинет бренда →</a>
+          <a class="btn ghost" href="https://t.me/ShareBrand_bot">Демо в Telegram</a>
         </div>
       </div>
     </div>
@@ -284,14 +527,14 @@
 
   <footer>
     <div class="wrap footer-row">
-      <div>© ShareBrand · ООО, резидент ПВТ (Беларусь) · MVP в разработке</div>
+      <div>© vdole.ai · резидент ПВТ (Беларусь)</div>
       <div class="footer-links">
-        <a href="index.html">Mini App</a>
-        <a href="dashboard.html">Дашборд</a>
+        <a href="https://crm.sharebrand.ru">Кабинет бренда</a>
+        <span>Политика конфиденциальности · скоро</span>
       </div>
     </div>
   </footer>
 
-  <div class="proto-note">UX-прототип · не финальные тексты и не боевой домен</div>
+  <div class="proto-note">UX-прототип, редизайн · копирайт — по мотивам живого sharebrand.ru · не боевой домен</div>
 </body>
 </html>
