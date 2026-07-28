@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vdole.ai — твой голос, твои друзья, твоя доля</title>
+<style>
+  :root {
+    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
+    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
+    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
+    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
+    --accent-2: #6C5CE7; --accent-2-soft: #E9E5FF;
+    --good: #1FAE7D; --good-soft: #DCF3EA;
+    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
+    --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
+      --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
+      --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
+      --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
+      --accent-2: #8B7CF6; --accent-2-soft: #241F42;
+      --good: #34D399; --good-soft: #123527;
+      --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
+    --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
+    --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
+    --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
+    --accent-2: #8B7CF6; --accent-2-soft: #241F42;
+    --good: #34D399; --good-soft: #123527;
+    --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
+  }
+  :root[data-theme="light"] {
+    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
+    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
+    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
+    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
+    --accent-2: #6C5CE7; --accent-2-soft: #E9E5FF;
+    --good: #1FAE7D; --good-soft: #DCF3EA;
+    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+
+  .site-tabs { display: flex; gap: 4px; padding: 8px 20px; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .site-tabs a { font-size: 11.5px; font-weight: 700; text-decoration: none; color: var(--ink-faint); padding: 6px 12px; border-radius: 7px; }
+  .site-tabs a.active { color: var(--ink); background: var(--surface-2); }
+  .site-tabs a:hover:not(.active) { color: var(--ink-dim); }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  .pnav {
+    position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line);
+  }
+  .pnav .wrap { display: flex; align-items: center; gap: 20px; height: 58px; max-width: 1040px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
+  .brand .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+  .pnav .back { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); text-decoration: none; }
+  .pnav .spacer { flex: 1 1 auto; }
+  .pnav .cross-link {
+    font-size: 12.5px; font-weight: 700; text-decoration: none; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--line-strong); padding: 8px 14px; border-radius: 100px;
+  }
+
+  section { padding: 64px 0; }
+  .section-eyebrow {
+    display: inline-flex; font-size: 11.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--accent-soft-ink); background: var(--accent-soft); padding: 5px 12px; border-radius: 100px; margin-bottom: 14px;
+  }
+  h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.015em; margin: 0 0 10px; }
+
+  /* ---- Hero ---- */
+  .hero {
+    background: radial-gradient(560px 320px at 85% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero .wrap { max-width: 1040px; padding: 56px 24px 48px; display: grid; grid-template-columns: 1.05fr 0.85fr; gap: 44px; align-items: center; }
+  h1 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; }
+  .hero-sub { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); max-width: 480px; margin: 0 0 26px; }
+  .btn {
+    font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
+    padding: 14px 22px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
+  }
+  .btn.primary { background: var(--accent); color: #fff; box-shadow: var(--shadow); }
+  .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
+
+  .mock-card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 22px; max-width: 340px; margin: 0 auto; }
+  .mock-card .mrow { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .mock-card .avatar { flex: 0 0 auto; border-radius: 50%; }
+  .mock-card .mname { font-size: 13px; font-weight: 700; }
+  .mock-card .mtag { font-size: 11.5px; color: var(--ink-faint); }
+  .mock-card .review-box { background: var(--surface-2); border-radius: 14px; padding: 14px; font-size: 12.5px; line-height: 1.5; color: var(--ink-dim); margin-bottom: 14px; }
+  .mock-card .wave { display: flex; align-items: flex-end; gap: 3px; height: 34px; margin-bottom: 14px; padding: 0 2px; }
+  .mock-card .wave span { flex: 1 1 auto; background: linear-gradient(180deg, var(--accent), var(--accent-2)); border-radius: 3px; opacity: 0.85; }
+  .mock-card .mfoot { display: flex; align-items: center; justify-content: space-between; }
+  .mock-card .mstatus { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--good); }
+  .mock-card .mstatus .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+  .mock-card .mchip { font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 100px; background: var(--accent-soft); color: var(--accent-soft-ink); }
+  @media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; } .mock-card { max-width: 380px; } }
+
+  /* ---- Thesis cards ---- */
+  .thesis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .thesis-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .thesis-card h3 { font-size: 14.5px; margin: 0 0 8px; }
+  .thesis-card p { font-size: 13px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
+
+  /* ---- Timeline ---- */
+  .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; position: relative; }
+  .timeline::before { content: ""; position: absolute; top: 23px; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: 0.35; }
+  .tl-step { position: relative; padding: 0 12px; text-align: center; }
+  .tl-step .num {
+    width: 46px; height: 46px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent);
+    color: var(--accent-soft-ink); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin: 0 auto 16px; position: relative; z-index: 1;
+  }
+  .tl-step h3 { font-size: 14px; margin: 0 0 8px; }
+  .tl-step p { font-size: 12.5px; line-height: 1.5; color: var(--ink-dim); margin: 0; }
+  @media (max-width: 760px) {
+    .timeline { grid-template-columns: 1fr; gap: 26px; text-align: left; }
+    .timeline::before { display: none; }
+    .tl-step { padding: 0 0 0 58px; text-align: left; }
+    .tl-step .num { position: absolute; left: 0; top: 0; margin: 0; }
+    .tl-step::after { content: ""; position: absolute; left: 22px; top: 46px; bottom: -26px; width: 2px; background: var(--line-strong); }
+    .tl-step:last-child::after { display: none; }
+  }
+
+  /* ---- Money block ---- */
+  .money-panel { background: var(--surface-2); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; }
+  .money-panel p { font-size: 14.5px; line-height: 1.65; color: var(--ink); margin: 0; }
+  .money-panel strong { color: var(--ink); }
+
+  /* ---- Safety checklist ---- */
+  .checklist { display: flex; flex-direction: column; gap: 12px; }
+  .checklist-row { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .checklist-row .ck { color: var(--good); font-weight: 800; flex: 0 0 auto; }
+
+  /* ---- Plain text block ---- */
+  .text-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; font-size: 14.5px; line-height: 1.65; color: var(--ink-dim); }
+
+  /* ---- FAQ accordion ---- */
+  .faq-item { border-bottom: 1px solid var(--line); }
+  .faq-q { width: 100%; text-align: left; background: none; border: 0; cursor: pointer; padding: 18px 4px; font-family: inherit; font-size: 15px; font-weight: 700; color: var(--ink); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .faq-q .chev { transition: transform 0.15s ease; color: var(--ink-faint); flex: 0 0 auto; }
+  .faq-item.open .faq-q .chev { transform: rotate(180deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.2s ease; }
+  .faq-item.open .faq-a { max-height: 240px; }
+  .faq-a p { font-size: 13.5px; line-height: 1.6; color: var(--ink-dim); margin: 0 4px 18px; }
+
+  /* ---- Signup form ---- */
+  .signup-panel { background: linear-gradient(155deg, var(--accent-soft), var(--surface) 55%, var(--accent-2-soft)); border: 1px solid var(--line); border-radius: 24px; padding: 40px 32px; }
+  .signup-panel .head { text-align: center; margin-bottom: 28px; }
+  .signup-panel .head h2 { margin-bottom: 8px; }
+  .signup-panel .head p { color: var(--ink-dim); font-size: 14px; margin: 0; }
+  .signup-form { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .signup-form label { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); display: block; margin-bottom: 5px; }
+  .signup-form input, .signup-form select {
+    width: 100%; font-family: inherit; font-size: 14px; padding: 11px 13px; border-radius: 10px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  }
+  .signup-form .field { margin: 0; }
+  .signup-form .submit { margin-top: 6px; }
+  .form-success { display: none; text-align: center; padding: 20px; }
+  .form-success.show { display: block; }
+  .form-success .ic { font-size: 34px; margin-bottom: 10px; }
+  .form-success h3 { margin: 0 0 8px; font-size: 17px; }
+  .form-success p { margin: 0; color: var(--ink-dim); font-size: 13.5px; }
+
+  footer { border-top: 1px solid var(--line); padding: 26px 0; background: var(--surface); }
+  .footer-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink-faint); }
+  .footer-row a { color: var(--ink-faint); text-decoration: none; }
+  .disclaimer { font-size: 11px; color: var(--ink-faint); line-height: 1.5; margin-top: 10px; max-width: 720px; }
+  .proto-note { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-faint); letter-spacing: 0.03em; text-transform: uppercase; padding: 12px 0; background: var(--surface); }
+
+  @media (max-width: 760px) { .thesis-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <nav class="site-tabs">
+    <a href="landing.html" class="active">🚀 Лендинг</a>
+    <a href="index.html">📱 Mini App</a>
+    <a href="dashboard.html">📊 Дашборд (новый)</a>
+    <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
+  </nav>
+
+  <div class="pnav">
+    <div class="wrap">
+      <a class="brand" href="landing.html"><span class="mark">SB</span> vdole.ai</a>
+      <a class="back" href="landing.html">← Манифест</a>
+      <span class="spacer"></span>
+      <a class="cross-link" href="brands.html">Вы бренд? →</a>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div>
+        <h1>Твой голос. Твои друзья. Твоя доля.</h1>
+        <p class="hero-sub">
+          Нейросеть переозвучивает проверенный обзор бренда твоим голосом. Ты одобряешь каждый ролик.
+          Друзья покупают по твоему промокоду — тебе идёт процент с каждой покупки.
+        </p>
+        <a class="btn primary" href="#signup">Занять место в пилоте</a>
+        <div class="hero-meta">50 мест · бесплатно · нужен статус самозанятого (поможем за 10 минут)</div>
+      </div>
+      <div class="mock-card">
+        <div class="mrow">
+          <svg class="avatar" viewBox="0 0 36 36" width="36" height="36" aria-hidden="true">
+            <defs>
+              <linearGradient id="avatarGradP" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="var(--accent)"/>
+                <stop offset="100%" stop-color="var(--accent-2)"/>
+              </linearGradient>
+            </defs>
+            <circle cx="18" cy="18" r="18" fill="url(#avatarGradP)"/>
+            <circle cx="18" cy="15" r="6.2" fill="rgba(255,255,255,0.94)"/>
+            <path d="M5 33c0-7.5 5.8-12 13-12s13 4.5 13 12" fill="rgba(255,255,255,0.94)"/>
+          </svg>
+          <div>
+            <div class="mname">Обзор · Nova Cosmetics</div>
+            <div class="mtag">переозвучен твоим голосом</div>
+          </div>
+        </div>
+        <div class="review-box">«Пользуюсь этой сывороткой уже месяц — кожа реально стала ровнее...»</div>
+        <div class="wave">
+          <span style="height:40%"></span><span style="height:70%"></span><span style="height:35%"></span>
+          <span style="height:90%"></span><span style="height:55%"></span><span style="height:75%"></span>
+          <span style="height:30%"></span><span style="height:60%"></span><span style="height:45%"></span>
+          <span style="height:80%"></span><span style="height:50%"></span><span style="height:65%"></span>
+        </div>
+        <div class="mfoot">
+          <span class="mstatus"><span class="dot"></span> Голос — на устройстве</span>
+          <span class="mchip">Промокод VDL-84K</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="thesis">
+    <div class="wrap">
+      <div class="thesis-grid">
+        <div class="thesis-card">
+          <h3>Ноль порога</h3>
+          <p>Не нужны навыки, вложения, склад и миллион подписчиков. Контент делает ИИ — доверие уже твоё.</p>
+        </div>
+        <div class="thesis-card">
+          <h3>Ноль стыда</h3>
+          <p>Ты одобряешь каждый ролик лично. Реклама честно помечена. Никаких казино, кредитов и чудо-таблеток.</p>
+        </div>
+        <div class="thesis-card">
+          <h3>Ноль «сетевого»</h3>
+          <p>Платим только за покупки. За приглашение друзей — не платим. Это не MLM, и мы говорим об этом первыми.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <span class="section-eyebrow">Как это работает</span>
+      <h2 style="margin-bottom:36px">4 шага</h2>
+      <div class="timeline">
+        <div class="tl-step"><div class="num">1</div><h3>Запиши голос</h3><p>Один раз, 10–15 минут, прямо на телефоне. Голос не покидает устройство.</p></div>
+        <div class="tl-step"><div class="num">2</div><h3>Получай ролики</h3><p>Обзоры, которые уже продают, — переозвученные твоим голосом.</p></div>
+        <div class="tl-step"><div class="num">3</div><h3>Одобряй сам</h3><p>Пачка раз в день. «Отклонить» — и ролик не выйдет никогда.</p></div>
+        <div class="tl-step"><div class="num">4</div><h3>Получай долю</h3><p>Промокод → покупка → начисление. Всё видно в кабинете.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="money">
+    <div class="wrap">
+      <span class="section-eyebrow">Сколько это денег</span>
+      <h2 style="margin-bottom:20px">Честный блок — без золотых гор</h2>
+      <div class="money-panel">
+        <p>
+          Зависит от твоей сети. Обычно — <strong>от нескольких сотен до нескольких тысяч рублей в месяц</strong>:
+          у кого 200 человек в тёплом чате — на связь и кофе; у кого живой канал на пару тысяч — заметная прибавка.
+          Мы не обещаем золотых гор: покажем реальные цифры первых участников пилота. Выплаты — самозанятому,
+          от 50 000 ₽ накопленным итогом, чек — автоматически.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="safety">
+    <div class="wrap">
+      <span class="section-eyebrow">Почему это безопасно</span>
+      <h2 style="margin-bottom:20px">Пять гарантий</h2>
+      <div class="checklist">
+        <div class="checklist-row"><span class="ck">✓</span> Голос — только на твоём устройстве</div>
+        <div class="checklist-row"><span class="ck">✓</span> Согласия отдельные и отзывные</div>
+        <div class="checklist-row"><span class="ck">✓</span> Публикации только через официальные API</div>
+        <div class="checklist-row"><span class="ck">✓</span> Каждый ролик — с пометкой «Реклама» и erid</div>
+        <div class="checklist-row"><span class="ck">✓</span> Данных о тебе — минимум</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="who">
+    <div class="wrap">
+      <span class="section-eyebrow">Кого зовём в пилот</span>
+      <h2 style="margin-bottom:20px">Живая аудитория важнее большой</h2>
+      <div class="text-panel">
+        18+. Готовность оформить самозанятость (поможем). Желание рекомендовать только то, за что не стыдно.
+        Ищущим «кнопку бабло» — не сюда: доверие не накручивается.
+      </div>
+    </div>
+  </section>
+
+  <section id="referral">
+    <div class="wrap">
+      <span class="section-eyebrow">Очередь и рефералка</span>
+      <h2 style="margin-bottom:20px">Место, а не деньги</h2>
+      <div class="text-panel">
+        Друг по твоей ссылке → вы <strong style="color:var(--ink)">оба выше в очереди</strong> на 50 мест.
+        Единственный бонус за приглашения — место, не деньги.
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <span class="section-eyebrow">FAQ</span>
+      <h2 style="margin-bottom:24px">Частые вопросы</h2>
+      <div id="faqList">
+        <div class="faq-item">
+          <button class="faq-q">Это законно? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Да. Работаешь как самозанятый (поможем оформить за 10 минут). Каждый ролик — с пометкой «Реклама» и erid, данные уходят в ЕРИР. Всё прозрачно и по закону.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Вы украдёте мой голос? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Нет. Голосовая модель обрабатывается и хранится только на твоём устройстве. Согласие на запись голоса можно отозвать в любой момент.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Что, если ролик плохой? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Просто нажми «Отклонить» — этот ролик не выйдет никогда, ни при каких условиях. Публикуется только то, что ты одобрил лично.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Зачем нужен ИНН? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Это требование закона о рекламе — данные передаются в ЕРИР при каждой публикации маркированного ролика.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Сколько времени это займёт? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>5–10 минут в день на одобрение роликов. Запись голоса — разовая, 10–15 минут.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Когда старт? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Август 2026, по очереди листа ожидания — чем раньше заявка, тем выше место.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="signup">
+    <div class="wrap">
+      <div class="signup-panel">
+        <div class="head">
+          <h2>Доверие твоих друзей — твой актив.<br>Пора получать с него долю.</h2>
+        </div>
+        <form class="signup-form" id="signupForm">
+          <div class="field"><label for="f-name">Имя</label><input id="f-name" type="text" required placeholder="Как к тебе обращаться"></div>
+          <div class="field"><label for="f-tg">Telegram</label><input id="f-tg" type="text" required placeholder="@username"></div>
+          <div class="field"><label for="f-city">Город</label><input id="f-city" type="text" required placeholder="Минск"></div>
+          <div class="field"><label for="f-reach">Твоя аудитория (примерно)</label><input id="f-reach" type="text" required placeholder="Например: 200 друзей в чатах"></div>
+          <div class="field">
+            <label for="f-se">Статус самозанятого</label>
+            <select id="f-se">
+              <option>Уже оформлен(а)</option>
+              <option>Нет, но готов(а) оформить</option>
+              <option>Нужна помощь с оформлением</option>
+            </select>
+          </div>
+          <button type="submit" class="btn primary submit">Занять место в пилоте</button>
+        </form>
+        <div class="form-success" id="formSuccess">
+          <div class="ic">✅</div>
+          <h3>Заявка принята — ты в очереди</h3>
+          <p>Мы свяжемся, когда откроется место. Пришли ссылку другу — вы оба подниметесь в очереди.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-row">
+        <div>© vdole.ai · ООО «ВДОЛЕ» · резидент ПВТ (Беларусь)</div>
+        <a href="brands.html">Вы бренд? →</a>
+      </div>
+      <div class="disclaimer">Доход не гарантирован и зависит от сети, активности и покупок. Не трудовые отношения и не инвестиции; участие добровольно, выход в любой момент.</div>
+    </div>
+  </footer>
+  <div class="proto-note">UX-прототип по брифу v2 · не боевой домен</div>
+
+<script>
+(function () {
+  "use strict";
+  Array.prototype.forEach.call(document.querySelectorAll(".faq-item"), function (item) {
+    item.querySelector(".faq-q").addEventListener("click", function () {
+      var wasOpen = item.classList.contains("open");
+      Array.prototype.forEach.call(document.querySelectorAll(".faq-item.open"), function (o) { o.classList.remove("open"); });
+      if (!wasOpen) item.classList.add("open");
+    });
+  });
+  document.getElementById("signupForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    this.style.display = "none";
+    document.getElementById("formSuccess").classList.add("show");
+  });
+})();
+</script>
+</body>
+</html>

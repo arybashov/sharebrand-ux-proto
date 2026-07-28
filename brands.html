@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vdole.ai — платите за покупки, не за показы</title>
+<style>
+  /* Dark is the door's own identity (per brief §II/§VII — "инверсия логотипа"), not a
+     light/dark-mode preference — so these are the DEFAULT values, not behind a media query.
+     data-theme overrides still work for whatever harness toggle might stamp the root. */
+  :root {
+    --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
+    --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
+    --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
+    --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
+    --accent-2: #8B7CF6; --accent-2-soft: #241F42;
+    --good: #34D399; --good-soft: #123527;
+    --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
+    --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :root[data-theme="light"] {
+    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
+    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
+    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
+    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
+    --accent-2: #6C5CE7; --accent-2-soft: #E9E5FF;
+    --good: #1FAE7D; --good-soft: #DCF3EA;
+    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+
+  .site-tabs { display: flex; gap: 4px; padding: 8px 20px; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .site-tabs a { font-size: 11.5px; font-weight: 700; text-decoration: none; color: var(--ink-faint); padding: 6px 12px; border-radius: 7px; }
+  .site-tabs a.active { color: var(--ink); background: var(--surface-2); }
+  .site-tabs a:hover:not(.active) { color: var(--ink-dim); }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  .pnav {
+    position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line);
+  }
+  .pnav .wrap { display: flex; align-items: center; gap: 20px; height: 58px; max-width: 1040px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
+  .brand .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+  .pnav .back { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); text-decoration: none; }
+  .pnav .spacer { flex: 1 1 auto; }
+  .pnav .cross-link {
+    font-size: 12.5px; font-weight: 700; text-decoration: none; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--line-strong); padding: 8px 14px; border-radius: 100px;
+  }
+
+  section { padding: 64px 0; }
+  .section-eyebrow {
+    display: inline-flex; font-size: 11.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--accent-soft-ink); background: var(--accent-soft); padding: 5px 12px; border-radius: 100px; margin-bottom: 14px;
+  }
+  h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.015em; margin: 0 0 10px; }
+
+  .hero {
+    background: radial-gradient(560px 320px at 85% -10%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%), var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero .wrap { max-width: 900px; padding: 56px 24px; text-align: left; }
+  h1 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; max-width: 620px; }
+  .hero-sub { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); max-width: 620px; margin: 0 0 26px; }
+  .btn {
+    font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
+    padding: 14px 22px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
+  .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
+
+  .pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .pain-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .pain-card h3 { font-size: 14.5px; margin: 0 0 8px; }
+  .pain-card p { font-size: 13px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
+
+  .timeline-list { display: flex; flex-direction: column; gap: 0; }
+  .tl-row { display: flex; gap: 18px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .tl-row:first-child { border-top: 0; }
+  .tl-row .num {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line-strong);
+    color: var(--accent-soft-ink); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex: 0 0 auto;
+  }
+  .tl-row h3 { font-size: 14.5px; margin: 0 0 6px; }
+  .tl-row p { font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
+
+  table.compare { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.compare th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-faint); padding: 0 14px 10px; font-weight: 700; }
+  table.compare td { padding: 14px; border-top: 1px solid var(--line); vertical-align: top; line-height: 1.5; }
+  table.compare tr:first-child td { border-top: 0; }
+  table.compare td.bad { color: var(--ink-faint); }
+  table.compare td.good { color: var(--ink); }
+  table.compare td.good strong { color: var(--good); }
+
+  .text-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; font-size: 14.5px; line-height: 1.65; color: var(--ink-dim); }
+  .text-panel strong { color: var(--ink); }
+
+  .faq-item { border-bottom: 1px solid var(--line); }
+  .faq-q { width: 100%; text-align: left; background: none; border: 0; cursor: pointer; padding: 18px 4px; font-family: inherit; font-size: 15px; font-weight: 700; color: var(--ink); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .faq-q .chev { transition: transform 0.15s ease; color: var(--ink-faint); flex: 0 0 auto; }
+  .faq-item.open .faq-q .chev { transform: rotate(180deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.2s ease; }
+  .faq-item.open .faq-a { max-height: 240px; }
+  .faq-a p { font-size: 13.5px; line-height: 1.6; color: var(--ink-dim); margin: 0 4px 18px; }
+
+  .signup-panel { background: linear-gradient(155deg, var(--accent-soft), var(--surface) 55%, var(--accent-2-soft)); border: 1px solid var(--line); border-radius: 24px; padding: 40px 32px; }
+  .signup-panel .head { text-align: center; margin-bottom: 28px; }
+  .signup-panel .head h2 { margin-bottom: 8px; }
+  .signup-form { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .signup-form label { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); display: block; margin-bottom: 5px; }
+  .signup-form input, .signup-form select {
+    width: 100%; font-family: inherit; font-size: 14px; padding: 11px 13px; border-radius: 10px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  }
+  .signup-form .field { margin: 0; }
+  .signup-form .submit { margin-top: 6px; }
+  .form-success { display: none; text-align: center; padding: 20px; }
+  .form-success.show { display: block; }
+  .form-success .ic { font-size: 34px; margin-bottom: 10px; }
+  .form-success h3 { margin: 0 0 8px; font-size: 17px; }
+  .form-success p { margin: 0; color: var(--ink-dim); font-size: 13.5px; }
+
+  footer { border-top: 1px solid var(--line); padding: 26px 0; background: var(--surface); }
+  .footer-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink-faint); }
+  .footer-row a { color: var(--ink-faint); text-decoration: none; }
+  .proto-note { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-faint); letter-spacing: 0.03em; text-transform: uppercase; padding: 12px 0; background: var(--surface); }
+
+  @media (max-width: 760px) {
+    .pain-grid { grid-template-columns: 1fr; }
+    table.compare, table.compare thead { display: block; }
+    table.compare thead { display: none; }
+    table.compare tr { display: block; border-top: 1px solid var(--line); padding: 12px 0; }
+    table.compare tr:first-child { border-top: 0; }
+    table.compare td { display: block; padding: 4px 0; border-top: 0; }
+    table.compare td.bad::before { content: "Как обычно: "; font-weight: 700; color: var(--ink-faint); }
+    table.compare td.good::before { content: "Как у нас: "; font-weight: 700; color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+  <nav class="site-tabs">
+    <a href="landing.html" class="active">🚀 Лендинг</a>
+    <a href="index.html">📱 Mini App</a>
+    <a href="dashboard.html">📊 Дашборд (новый)</a>
+    <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
+  </nav>
+
+  <div class="pnav">
+    <div class="wrap">
+      <a class="brand" href="landing.html"><span class="mark">SB</span> vdole.ai</a>
+      <a class="back" href="landing.html">← Манифест</a>
+      <span class="spacer"></span>
+      <a class="cross-link" href="promoters.html">Вы промоутер? →</a>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <h1>Платите за покупки. Не за показы.</h1>
+      <p class="hero-sub">
+        vdole.ai размещает ваш уже конвертящий обзор голосами сотен реальных людей — в их личные доверенные каналы.
+        Вы платите CPA за подтверждённую покупку. Всё остальное — наша работа: производство, маркировка, выплаты, антифрод.
+      </p>
+      <a class="btn primary" href="#signup">Обсудить пилот</a>
+      <div class="hero-meta">Первая волна: 5 брендов · 30–50 промоутеров · старт в августе</div>
+    </div>
+  </header>
+
+  <section id="pain">
+    <div class="wrap">
+      <div class="pain-grid">
+        <div class="pain-card">
+          <h3>«Трафик дорожает, конверсия падает»</h3>
+          <p>Рекомендация друга покупается в ~4 раза чаще рекламы (Nielsen). Мы масштабируем именно её — не баннеры.</p>
+        </div>
+        <div class="pain-card">
+          <h3>«Инфлюенсеры — дорого и непредсказуемо»</h3>
+          <p>Вместо одного миллионника — сотни нано-аудиторий с конверсией 3–7% на тёплом трафике. Только за покупку, не «за факт поста».</p>
+        </div>
+        <div class="pain-card">
+          <h3>«Риски маркировки»</h3>
+          <p>Erid и пометка «Реклама» вшиты автоматически — без erid система физически не публикует. Данные в ЕРИР сдаём мы.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <span class="section-eyebrow">Как это работает</span>
+      <h2 style="margin-bottom:24px">5 шагов</h2>
+      <div class="timeline-list">
+        <div class="tl-row"><div class="num">1</div><div><h3>Даёте обзор, который уже продаёт</h3><p>(или снимаем по брифу). Не генерация «с нуля» — усиление того, что доказало конверсию.</p></div></div>
+        <div class="tl-row"><div class="num">2</div><div><h3>Платформа уникализирует ролик</h3><p>под каждого промоутера: его голос, его подача (собственная переработанная голосовая модель). Ролики не выглядят копиями — потому что ими не являются.</p></div></div>
+        <div class="tl-row"><div class="num">3</div><div><h3>Каждый ролик одобряет живой человек</h3><p>и публикует в свой канал. Промоутер отвечает лицом перед своими — это и есть контроль качества.</p></div></div>
+        <div class="tl-row"><div class="num">4</div><div><h3>Покупки атрибутируются промокодами</h3><p>каждая конверсия видна в отчёте.</p></div></div>
+        <div class="tl-row"><div class="num">5</div><div><h3>Депозит списывается только за подтверждённые покупки</h3><p>Возврат товара — сторно. Остаток депозита возвращаем.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="economics">
+    <div class="wrap">
+      <span class="section-eyebrow">Экономика и гарантии</span>
+      <h2 style="margin-bottom:24px">Как обычно vs. как у нас</h2>
+      <table class="compare">
+        <thead><tr><th>Как обычно</th><th>Как у нас</th></tr></thead>
+        <tbody>
+          <tr><td class="bad">Оплата за показы/посты, результат — «как пойдёт»</td><td class="good"><strong>CPA:</strong> платите за подтверждённую покупку</td></tr>
+          <tr><td class="bad">Бюджет сгорает независимо от продаж</td><td class="good"><strong>Депозит с эскроу-логикой:</strong> не продано — не списано</td></tr>
+          <tr><td class="bad">Маркировка — ваша головная боль и риск штрафов</td><td class="good"><strong>Erid/ЕРИР — автоматически;</strong> публикация без маркировки невозможна технически</td></tr>
+          <tr><td class="bad">Накрутки и боты</td><td class="good"><strong>Антифрод + холд-период:</strong> платим за реальные покупки реальных людей</td></tr>
+          <tr><td class="bad">Один блогер = одна аудитория</td><td class="good"><strong>Сотни доверенных микро-аудиторий</strong> одним запуском</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="fit">
+    <div class="wrap">
+      <span class="section-eyebrow">Для кого канал (и для кого нет)</span>
+      <h2 style="margin-bottom:20px">Категории</h2>
+      <div class="text-panel">
+        Работаем с товарами и сервисами, за которые промоутеру не стыдно перед своими: e-com, приложения, подписки, FMCG, локальные сервисы.
+        <strong>Не берём:</strong> кредитные и азартные продукты, «серые» БАДы, всё, что не пройдёт нашу проверку.
+        Да, мы отказываем брендам — это защищает конверсию тех, кого взяли.
+      </div>
+    </div>
+  </section>
+
+  <section id="pilot">
+    <div class="wrap">
+      <span class="section-eyebrow">Формат пилота</span>
+      <h2 style="margin-bottom:20px">Первая волна</h2>
+      <div class="text-panel">
+        5 брендов · 30–50 промоутеров · Telegram-канал распространения · депозит от [сумма — после решения по прайсингу] ·
+        личный отчёт по конверсиям · выделенный менеджер (основатель). Цель — совместно замерить вашу реальную
+        CPA-экономику на доверенном трафике.
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <span class="section-eyebrow">FAQ</span>
+      <h2 style="margin-bottom:24px">Частые вопросы</h2>
+      <div id="faqList">
+        <div class="faq-item">
+          <button class="faq-q">Чем это отличается от посевов у микроблогеров? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Посев — оплата за пост. Здесь — оплата за покупку; посты, производство и юридика — наша сторона.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Это легально? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Да: каждый ролик маркирован (erid, «Реклама»), данные сдаются в ЕРИР, промоутеры — самозанятые по договору.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Как защищён бюджет? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Депозит на отдельном учёте; списание — только по подтверждённой покупке; возвраты сторнируются; остаток возвращается.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">А если ролики «не зайдут»? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Вы не платите за просмотры — риск производства на нас. Ваш риск ограничен решением участвовать.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Откуда голоса? <span class="chev">▾</span></button>
+          <div class="faq-a"><p>Реальные люди, которые сами одобрили рекламу вашего продукта своей аудитории. Принудительных публикаций в системе не существует.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="signup">
+    <div class="wrap">
+      <div class="signup-panel">
+        <div class="head">
+          <h2>Дайте вашему лучшему обзору сотню голосов, которым верят.</h2>
+        </div>
+        <form class="signup-form" id="signupForm">
+          <div class="field"><label for="f-company">Компания</label><input id="f-company" type="text" required placeholder="Название компании"></div>
+          <div class="field"><label for="f-site">Сайт</label><input id="f-site" type="text" required placeholder="https://"></div>
+          <div class="field"><label for="f-cat">Категория товара</label><input id="f-cat" type="text" required placeholder="Например: косметика, e-com"></div>
+          <div class="field"><label for="f-contact">Контакт</label><input id="f-contact" type="text" required placeholder="Email или телефон"></div>
+          <button type="submit" class="btn primary submit">Обсудить пилот</button>
+        </form>
+        <div class="form-success" id="formSuccess">
+          <div class="ic">✅</div>
+          <h3>Заявка отправлена</h3>
+          <p>Свяжемся в ближайшее время, чтобы обсудить пилот и оценить вашу CPA-экономику.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap footer-row">
+      <div>© vdole.ai · ООО «ВДОЛЕ» · резидент ПВТ (Беларусь)</div>
+      <a href="promoters.html">Вы промоутер? →</a>
+    </div>
+  </footer>
+  <div class="proto-note">UX-прототип по брифу v2 · не боевой домен</div>
+
+<script>
+(function () {
+  "use strict";
+  Array.prototype.forEach.call(document.querySelectorAll(".faq-item"), function (item) {
+    item.querySelector(".faq-q").addEventListener("click", function () {
+      var wasOpen = item.classList.contains("open");
+      Array.prototype.forEach.call(document.querySelectorAll(".faq-item.open"), function (o) { o.classList.remove("open"); });
+      if (!wasOpen) item.classList.add("open");
+    });
+  });
+  document.getElementById("signupForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    this.style.display = "none";
+    document.getElementById("formSuccess").classList.add("show");
+  });
+})();
+</script>
+</body>
+</html>
