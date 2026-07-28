@@ -64,15 +64,25 @@
     background: radial-gradient(560px 320px at 85% -10%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%), var(--surface);
     border-bottom: 1px solid var(--line);
   }
-  .hero .wrap { max-width: 900px; padding: 56px 24px; text-align: left; }
-  h1 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; max-width: 620px; }
-  .hero-sub { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); max-width: 620px; margin: 0 0 26px; }
+  .hero .wrap { max-width: 1040px; padding: 56px 24px; display: grid; grid-template-columns: 1.05fr 0.85fr; gap: 44px; align-items: center; text-align: left; }
+  h1 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; }
+  .hero-sub { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); margin: 0 0 26px; }
   .btn {
     font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
     padding: 14px 22px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
   }
   .btn.primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
   .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
+
+  .hero-photo { position: relative; max-width: 400px; margin: 0 auto; }
+  .hero-photo img { width: 100%; display: block; border-radius: 22px; box-shadow: var(--shadow); object-fit: cover; }
+  .photo-badge {
+    position: absolute; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 10px 14px; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 7px;
+  }
+  .photo-badge.badge-good { top: -14px; right: -14px; color: var(--good); }
+  .photo-badge.badge-neutral { bottom: -14px; left: -14px; color: var(--ink); }
+  @media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; } .hero-photo { max-width: 380px; } }
 
   .pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
   .pain-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
@@ -161,13 +171,20 @@
 
   <header class="hero">
     <div class="wrap">
-      <h1>Платите за покупки. Не за показы.</h1>
-      <p class="hero-sub">
-        vdole.ai размещает ваш уже конвертящий обзор голосами сотен реальных людей — в их личные доверенные каналы.
-        Вы платите CPA за подтверждённую покупку. Всё остальное — наша работа: производство, маркировка, выплаты, антифрод.
-      </p>
-      <a class="btn primary" href="#signup">Обсудить пилот</a>
-      <div class="hero-meta">Первая волна: 5 брендов · 30–50 промоутеров · старт в августе</div>
+      <div>
+        <h1>Платите за покупки. Не за показы.</h1>
+        <p class="hero-sub">
+          vdole.ai размещает ваш уже конвертящий обзор голосами сотен реальных людей — в их личные доверенные каналы.
+          Вы платите CPA за подтверждённую покупку. Всё остальное — наша работа: производство, маркировка, выплаты, антифрод.
+        </p>
+        <a class="btn primary" href="#signup">Обсудить пилот</a>
+        <div class="hero-meta">Первая волна: 5 брендов · 30–50 промоутеров · старт в августе</div>
+      </div>
+      <div class="hero-photo">
+        <img src="assets/brand-portrait.png" alt="Владелица бренда просматривает результаты продаж за ноутбуком">
+        <div class="photo-badge badge-good">✓ CPA: покупка подтверждена</div>
+        <div class="photo-badge badge-neutral">🏷️ erid — автоматически</div>
+      </div>
     </div>
   </header>
 

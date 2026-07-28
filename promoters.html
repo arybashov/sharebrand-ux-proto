@@ -92,19 +92,15 @@
   .btn.primary { background: var(--accent); color: #fff; box-shadow: var(--shadow); }
   .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
 
-  .mock-card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 22px; max-width: 340px; margin: 0 auto; }
-  .mock-card .mrow { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .mock-card .avatar { flex: 0 0 auto; border-radius: 50%; }
-  .mock-card .mname { font-size: 13px; font-weight: 700; }
-  .mock-card .mtag { font-size: 11.5px; color: var(--ink-faint); }
-  .mock-card .review-box { background: var(--surface-2); border-radius: 14px; padding: 14px; font-size: 12.5px; line-height: 1.5; color: var(--ink-dim); margin-bottom: 14px; }
-  .mock-card .wave { display: flex; align-items: flex-end; gap: 3px; height: 34px; margin-bottom: 14px; padding: 0 2px; }
-  .mock-card .wave span { flex: 1 1 auto; background: linear-gradient(180deg, var(--accent), var(--accent-2)); border-radius: 3px; opacity: 0.85; }
-  .mock-card .mfoot { display: flex; align-items: center; justify-content: space-between; }
-  .mock-card .mstatus { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--good); }
-  .mock-card .mstatus .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
-  .mock-card .mchip { font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 100px; background: var(--accent-soft); color: var(--accent-soft-ink); }
-  @media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; } .mock-card { max-width: 380px; } }
+  .hero-photo { position: relative; max-width: 400px; margin: 0 auto; }
+  .hero-photo img { width: 100%; display: block; border-radius: 22px; box-shadow: var(--shadow); object-fit: cover; }
+  .photo-badge {
+    position: absolute; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+    padding: 10px 14px; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 7px;
+  }
+  .photo-badge.badge-good { top: -14px; right: -14px; color: var(--good); }
+  .photo-badge.badge-neutral { bottom: -14px; left: -14px; color: var(--ink); }
+  @media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; } .hero-photo { max-width: 380px; } }
 
   /* ---- Thesis cards ---- */
   .thesis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
@@ -209,35 +205,10 @@
         <a class="btn primary" href="#signup">Занять место в пилоте</a>
         <div class="hero-meta">50 мест · бесплатно · нужен статус самозанятого (поможем за 10 минут)</div>
       </div>
-      <div class="mock-card">
-        <div class="mrow">
-          <svg class="avatar" viewBox="0 0 36 36" width="36" height="36" aria-hidden="true">
-            <defs>
-              <linearGradient id="avatarGradP" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="var(--accent)"/>
-                <stop offset="100%" stop-color="var(--accent-2)"/>
-              </linearGradient>
-            </defs>
-            <circle cx="18" cy="18" r="18" fill="url(#avatarGradP)"/>
-            <circle cx="18" cy="15" r="6.2" fill="rgba(255,255,255,0.94)"/>
-            <path d="M5 33c0-7.5 5.8-12 13-12s13 4.5 13 12" fill="rgba(255,255,255,0.94)"/>
-          </svg>
-          <div>
-            <div class="mname">Обзор · Nova Cosmetics</div>
-            <div class="mtag">переозвучен твоим голосом</div>
-          </div>
-        </div>
-        <div class="review-box">«Пользуюсь этой сывороткой уже месяц — кожа реально стала ровнее...»</div>
-        <div class="wave">
-          <span style="height:40%"></span><span style="height:70%"></span><span style="height:35%"></span>
-          <span style="height:90%"></span><span style="height:55%"></span><span style="height:75%"></span>
-          <span style="height:30%"></span><span style="height:60%"></span><span style="height:45%"></span>
-          <span style="height:80%"></span><span style="height:50%"></span><span style="height:65%"></span>
-        </div>
-        <div class="mfoot">
-          <span class="mstatus"><span class="dot"></span> Голос — на устройстве</span>
-          <span class="mchip">Промокод VDL-84K</span>
-        </div>
+      <div class="hero-photo">
+        <img src="assets/promoter-portrait.png" alt="Промоутер получает уведомление о начислении на телефоне">
+        <div class="photo-badge badge-good">✓ Начисление получено</div>
+        <div class="photo-badge badge-neutral">🔒 Голос — на устройстве</div>
       </div>
     </div>
   </header>
