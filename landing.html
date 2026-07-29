@@ -85,9 +85,6 @@
   .manifest p strong { color: var(--ink); }
 
   /* ---- Two doors ---- */
-  /* Each door carries its OWN half of the artwork (200% width, positioned left/right) rather
-     than one shared background spanning both — so the light/dark split always lines up with
-     the door boundary, even when doors stack full-width on mobile instead of sitting 50/50. */
   .doors { flex: 1 1 auto; display: flex; min-height: 420px; }
   .door {
     flex: 1 1 50%; display: flex; align-items: center; justify-content: center; padding: 48px 32px;
@@ -102,25 +99,17 @@
   .door p { font-size: 14.5px; line-height: 1.55; margin: 0 0 26px; }
   .door-counter { font-size: 12.5px; font-weight: 700; margin-top: 14px; }
 
-  .door-light {
-    background-image: linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url('assets/doors-abstract-v8.png');
-    background-size: cover, 200% auto; background-position: center, left center; background-repeat: no-repeat, no-repeat;
-    color: var(--door-light-ink);
-  }
+  .door-light { background: var(--door-light-bg); color: var(--door-light-ink); }
   .door-light .door-eyebrow { background: #FFE3D6; color: #B23E17; }
   .door-light p { color: var(--door-light-dim); }
   .door-light .door-counter { color: var(--door-light-faint); }
-  .door-light:hover { background-image: linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)), url('assets/doors-abstract-v8.png'); }
+  .door-light:hover { background: var(--door-light-bg-hover); }
 
-  .door-dark {
-    background-image: linear-gradient(rgba(10,11,15,0.55), rgba(10,11,15,0.55)), url('assets/doors-abstract-v8.png');
-    background-size: cover, 200% auto; background-position: center, right center; background-repeat: no-repeat, no-repeat;
-    color: var(--door-dark-ink);
-  }
+  .door-dark { background: var(--door-dark-bg); color: var(--door-dark-ink); }
   .door-dark .door-eyebrow { background: rgba(255,122,77,0.16); color: #FFB08A; }
   .door-dark p { color: var(--door-dark-ink-dim); }
   .door-dark .door-counter { color: var(--door-dark-ink-dim); }
-  .door-dark:hover { background-image: linear-gradient(rgba(10,11,15,0.68), rgba(10,11,15,0.68)), url('assets/doors-abstract-v8.png'); }
+  .door-dark:hover { background: var(--door-dark-bg-hover); }
 
   .btn {
     font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
