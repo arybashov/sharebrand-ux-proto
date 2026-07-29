@@ -82,7 +82,7 @@
     background: radial-gradient(560px 320px at 85% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), var(--surface);
     border-bottom: 1px solid var(--line);
   }
-  .hero .wrap { max-width: 1040px; padding: 56px 24px 48px; display: grid; grid-template-columns: 1.05fr 0.85fr; gap: 44px; align-items: center; }
+  .hero .wrap { max-width: 720px; padding: 56px 24px 48px; }
   h1 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; }
   .hero-sub { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); max-width: 480px; margin: 0 0 26px; }
   .btn {
@@ -92,15 +92,6 @@
   .btn.primary { background: var(--accent); color: #fff; box-shadow: var(--shadow); }
   .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
 
-  .hero-photo { position: relative; max-width: 400px; margin: 0 auto; }
-  .hero-photo img { width: 100%; display: block; border-radius: 22px; box-shadow: var(--shadow); object-fit: cover; }
-  .photo-badge {
-    position: absolute; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
-    padding: 10px 14px; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 7px;
-  }
-  .photo-badge.badge-good { top: -14px; right: -14px; color: var(--good); }
-  .photo-badge.badge-neutral { bottom: -14px; left: -14px; color: var(--ink); }
-  @media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; } .hero-photo { max-width: 380px; } }
 
   /* ---- Thesis cards ---- */
   .thesis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
@@ -204,11 +195,6 @@
         </p>
         <a class="btn primary" href="#signup">Занять место в пилоте</a>
         <div class="hero-meta">50 мест · бесплатно · нужен статус самозанятого (поможем за 10 минут)</div>
-      </div>
-      <div class="hero-photo">
-        <img src="assets/promoter-portrait.png" alt="Промоутер показывает и рекомендует товар подруге">
-        <div class="photo-badge badge-good">✓ Подруга купила по промокоду</div>
-        <div class="photo-badge badge-neutral">🎙️ Обзор — её голосом</div>
       </div>
     </div>
   </header>
