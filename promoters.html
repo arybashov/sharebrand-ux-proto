@@ -46,10 +46,12 @@
   }
 
   section { padding: 64px 0; }
-  .section-eyebrow {
-    display: inline-flex; font-size: 11.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
-    color: var(--accent-soft-ink); background: var(--accent-soft); padding: 5px 12px; border-radius: 100px; margin-bottom: 14px;
-  }
+  /* ---- Numbered section header (brandbook .sec-h) ---- */
+  .sec-h { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .sec-h h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.01em; font-weight: 700; margin: 0; }
+  .sec-h .n { font-size: 12px; color: var(--ink-faint); letter-spacing: .14em; text-transform: uppercase; flex: 0 0 auto; }
+  .sec-h .rule { flex: 1 1 auto; height: 1px; background: var(--line); align-self: center; }
+  .sec-sub { color: var(--ink-faint); font-size: 13.5px; margin: 0 0 22px; max-width: 720px; }
   h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.015em; margin: 0 0 10px; }
 
   /* ---- Hero ---- */
@@ -65,14 +67,21 @@
     padding: 14px 22px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
   }
   .btn.primary { background: linear-gradient(135deg, var(--pulse), #5B3DF0); color: #fff; box-shadow: var(--shadow); }
-  .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+  .chip {
+    font-size: 12.5px; color: var(--ink); border: 1px solid var(--line-strong); padding: 6px 12px;
+    border-radius: 999px; background: var(--surface-2);
+  }
+  .chip.accent { border-color: transparent; background: rgba(124,92,255,0.12); color: #5B3DF0; font-weight: 700; }
 
-
-  /* ---- Thesis cards ---- */
+  /* ---- Thesis cards (brandbook .tile) ---- */
   .thesis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .thesis-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
-  .thesis-card h3 { font-size: 14.5px; margin: 0 0 8px; }
-  .thesis-card p { font-size: 13px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
+  .thesis-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .thesis-card h3 {
+    font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint);
+    font-weight: 700; margin: 0 0 14px;
+  }
+  .thesis-card p { font-size: 13.5px; line-height: 1.55; color: var(--ink); margin: 0; }
 
   /* ---- Timeline ---- */
   .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; position: relative; }
@@ -100,8 +109,8 @@
 
   /* ---- Safety checklist ---- */
   .checklist { display: flex; flex-direction: column; gap: 12px; }
-  .checklist-row { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 14px 16px; }
-  .checklist-row .ck { color: var(--flow); font-weight: 800; flex: 0 0 auto; }
+  .checklist-row { display: flex; gap: 12px; align-items: center; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 14px 16px; }
+  .checklist-row .ck { flex: 0 0 auto; display: flex; color: var(--flow); }
 
   /* ---- Plain text block ---- */
   .text-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 28px; font-size: 14.5px; line-height: 1.65; color: var(--ink-dim); }
@@ -187,7 +196,11 @@
           Друзья покупают по твоему промокоду — тебе идёт процент с каждой покупки.
         </p>
         <a class="btn primary" href="#signup">Занять место в пилоте</a>
-        <div class="hero-meta">50 мест · бесплатно · нужен статус самозанятого (поможем за 10 минут)</div>
+        <div class="chips">
+          <span class="chip accent">50 мест</span>
+          <span class="chip">Бесплатно</span>
+          <span class="chip">Статус самозанятого — поможем за 10 минут</span>
+        </div>
       </div>
     </div>
   </header>
@@ -213,8 +226,8 @@
 
   <section id="how">
     <div class="wrap">
-      <span class="section-eyebrow">Как это работает</span>
-      <h2 style="margin-bottom:36px">4 шага</h2>
+      <div class="sec-h"><span class="n">01</span><h2>Как это работает</h2><span class="rule"></span></div>
+      <p class="sec-sub">4 шага</p>
       <div class="timeline">
         <div class="tl-step"><div class="num">1</div><h3>Запиши голос</h3><p>Один раз, 10–15 минут, прямо на телефоне. Голос не покидает устройство.</p></div>
         <div class="tl-step"><div class="num">2</div><h3>Получай ролики</h3><p>Обзоры, которые уже продают, — переозвученные твоим голосом.</p></div>
@@ -226,8 +239,8 @@
 
   <section id="money">
     <div class="wrap">
-      <span class="section-eyebrow">Сколько это денег</span>
-      <h2 style="margin-bottom:20px">Честный блок — без золотых гор</h2>
+      <div class="sec-h"><span class="n">02</span><h2>Сколько это денег</h2><span class="rule"></span></div>
+      <p class="sec-sub">Честный блок — без золотых гор</p>
       <div class="money-panel">
         <p>
           Зависит от твоей сети. Обычно — <strong>от нескольких сотен до нескольких тысяч рублей в месяц</strong>:
@@ -241,22 +254,22 @@
 
   <section id="safety">
     <div class="wrap">
-      <span class="section-eyebrow">Почему это безопасно</span>
-      <h2 style="margin-bottom:20px">Пять гарантий</h2>
+      <div class="sec-h"><span class="n">03</span><h2>Почему это безопасно</h2><span class="rule"></span></div>
+      <p class="sec-sub">Пять гарантий</p>
       <div class="checklist">
-        <div class="checklist-row"><span class="ck">✓</span> Голос — только на твоём устройстве</div>
-        <div class="checklist-row"><span class="ck">✓</span> Согласия отдельные и отзывные</div>
-        <div class="checklist-row"><span class="ck">✓</span> Публикации только через официальные API</div>
-        <div class="checklist-row"><span class="ck">✓</span> Каждый ролик — с пометкой «Реклама» и erid</div>
-        <div class="checklist-row"><span class="ck">✓</span> Данных о тебе — минимум</div>
+        <div class="checklist-row"><span class="ck"><svg viewBox="0 0 56 56" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6 L48 14 V26 C48 38 39 47 28 50 C17 47 8 38 8 26 V14 Z"/><path d="M19 27 L25 34 L38 20"/></svg></span> Голос — только на твоём устройстве</div>
+        <div class="checklist-row"><span class="ck"><svg viewBox="0 0 56 56" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6 L48 14 V26 C48 38 39 47 28 50 C17 47 8 38 8 26 V14 Z"/><path d="M19 27 L25 34 L38 20"/></svg></span> Согласия отдельные и отзывные</div>
+        <div class="checklist-row"><span class="ck"><svg viewBox="0 0 56 56" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6 L48 14 V26 C48 38 39 47 28 50 C17 47 8 38 8 26 V14 Z"/><path d="M19 27 L25 34 L38 20"/></svg></span> Публикации только через официальные API</div>
+        <div class="checklist-row"><span class="ck"><svg viewBox="0 0 56 56" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6 L48 14 V26 C48 38 39 47 28 50 C17 47 8 38 8 26 V14 Z"/><path d="M19 27 L25 34 L38 20"/></svg></span> Каждый ролик — с пометкой «Реклама» и erid</div>
+        <div class="checklist-row"><span class="ck"><svg viewBox="0 0 56 56" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6 L48 14 V26 C48 38 39 47 28 50 C17 47 8 38 8 26 V14 Z"/><path d="M19 27 L25 34 L38 20"/></svg></span> Данных о тебе — минимум</div>
       </div>
     </div>
   </section>
 
   <section id="who">
     <div class="wrap">
-      <span class="section-eyebrow">Кого зовём в пилот</span>
-      <h2 style="margin-bottom:20px">Живая аудитория важнее большой</h2>
+      <div class="sec-h"><span class="n">04</span><h2>Кого зовём в пилот</h2><span class="rule"></span></div>
+      <p class="sec-sub">Живая аудитория важнее большой</p>
       <div class="text-panel">
         18+. Готовность оформить самозанятость (поможем). Желание рекомендовать только то, за что не стыдно.
         Ищущим «кнопку бабло» — не сюда: доверие не накручивается.
@@ -266,8 +279,8 @@
 
   <section id="referral">
     <div class="wrap">
-      <span class="section-eyebrow">Очередь и рефералка</span>
-      <h2 style="margin-bottom:20px">Место, а не деньги</h2>
+      <div class="sec-h"><span class="n">05</span><h2>Очередь и рефералка</h2><span class="rule"></span></div>
+      <p class="sec-sub">Место, а не деньги</p>
       <div class="text-panel">
         Друг по твоей ссылке → вы <strong style="color:var(--ink)">оба выше в очереди</strong> на 50 мест.
         Единственный бонус за приглашения — место, не деньги.
@@ -277,8 +290,8 @@
 
   <section id="faq">
     <div class="wrap">
-      <span class="section-eyebrow">FAQ</span>
-      <h2 style="margin-bottom:24px">Частые вопросы</h2>
+      <div class="sec-h"><span class="n">06</span><h2>FAQ</h2><span class="rule"></span></div>
+      <p class="sec-sub">Частые вопросы</p>
       <div id="faqList">
         <div class="faq-item">
           <button class="faq-q">Это законно? <span class="chev">▾</span></button>

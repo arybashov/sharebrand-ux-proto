@@ -46,10 +46,12 @@
   }
 
   section { padding: 64px 0; }
-  .section-eyebrow {
-    display: inline-flex; font-size: 11.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
-    color: var(--accent-soft-ink); background: var(--accent-soft); padding: 5px 12px; border-radius: 100px; margin-bottom: 14px;
-  }
+  /* ---- Numbered section header (brandbook .sec-h) ---- */
+  .sec-h { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .sec-h h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.01em; font-weight: 700; margin: 0; }
+  .sec-h .n { font-size: 12px; color: var(--ink-faint); letter-spacing: .14em; text-transform: uppercase; flex: 0 0 auto; }
+  .sec-h .rule { flex: 1 1 auto; height: 1px; background: var(--line); align-self: center; }
+  .sec-sub { color: var(--ink-faint); font-size: 13.5px; margin: 0 0 22px; max-width: 720px; }
   h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.015em; margin: 0 0 10px; }
 
   .hero {
@@ -64,12 +66,18 @@
     padding: 14px 22px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
   }
   .btn.primary { background: linear-gradient(135deg, var(--pulse), #5B3DF0); color: #fff; box-shadow: var(--shadow); }
-  .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+  .chip {
+    font-size: 12.5px; color: var(--ink); border: 1px solid var(--line-strong); padding: 6px 12px;
+    border-radius: 999px; background: rgba(255,255,255,.03);
+  }
+  .chip.accent { border-color: transparent; background: linear-gradient(135deg, rgba(124,92,255,.22), rgba(37,208,192,.16)); color: #fff; font-weight: 700; }
 
-
+  /* ---- Pain cards (brandbook .tile) ---- */
   .pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .pain-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
-  .pain-card h3 { font-size: 14.5px; margin: 0 0 8px; }
+  .pain-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .pain-card .ic { color: var(--pulse); margin-bottom: 14px; }
+  .pain-card h3 { font-size: 13.5px; margin: 0 0 8px; letter-spacing: -0.005em; }
   .pain-card p { font-size: 13px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
 
   .timeline-list { display: flex; flex-direction: column; gap: 0; }
@@ -183,7 +191,11 @@
           Вы платите CPA за подтверждённую покупку. Всё остальное — наша работа: производство, маркировка, выплаты, антифрод.
         </p>
         <a class="btn primary" href="#signup">Обсудить пилот</a>
-        <div class="hero-meta">Первая волна: 5 брендов · 30–50 промоутеров · старт в августе</div>
+        <div class="chips">
+          <span class="chip accent">5 брендов в первой волне</span>
+          <span class="chip">30–50 промоутеров</span>
+          <span class="chip">Старт в августе</span>
+        </div>
       </div>
     </div>
   </header>
@@ -192,14 +204,17 @@
     <div class="wrap">
       <div class="pain-grid">
         <div class="pain-card">
+          <span class="ic"><svg viewBox="0 0 56 56" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6 L48 14 V26 C48 38 39 47 28 50 C17 47 8 38 8 26 V14 Z"/><path d="M19 27 L25 34 L38 20"/></svg></span>
           <h3>«Трафик дорожает, конверсия падает»</h3>
           <p>Рекомендация друга покупается в ~4 раза чаще рекламы (Nielsen). Мы масштабируем именно её — не баннеры.</p>
         </div>
         <div class="pain-card">
+          <span class="ic"><svg viewBox="0 0 56 56" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="16" width="42" height="30" rx="4"/><path d="M7 24 H49"/><circle cx="38" cy="35" r="3.5"/></svg></span>
           <h3>«Инфлюенсеры — дорого и непредсказуемо»</h3>
           <p>Вместо одного миллионника — сотни нано-аудиторий с конверсией 3–7% на тёплом трафике. Только за покупку, не «за факт поста».</p>
         </div>
         <div class="pain-card">
+          <span class="ic"><svg viewBox="0 0 56 56" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="12" width="36" height="32" rx="3"/><path d="M10 22 H46 M20 30 H36 M20 36 H30"/></svg></span>
           <h3>«Риски маркировки»</h3>
           <p>Erid и пометка «Реклама» вшиты автоматически — без erid система физически не публикует. Данные в ЕРИР сдаём мы.</p>
         </div>
@@ -209,8 +224,8 @@
 
   <section id="how">
     <div class="wrap">
-      <span class="section-eyebrow">Как это работает</span>
-      <h2 style="margin-bottom:24px">5 шагов</h2>
+      <div class="sec-h"><span class="n">01</span><h2>Как это работает</h2><span class="rule"></span></div>
+      <p class="sec-sub">5 шагов</p>
       <div class="timeline-list">
         <div class="tl-row"><div class="num">1</div><div><h3>Даёте обзор, который уже продаёт</h3><p>(или снимаем по брифу). Не генерация «с нуля» — усиление того, что доказало конверсию.</p></div></div>
         <div class="tl-row"><div class="num">2</div><div><h3>Платформа уникализирует ролик</h3><p>под каждого промоутера: его голос, его подача (собственная переработанная голосовая модель). Ролики не выглядят копиями — потому что ими не являются.</p></div></div>
@@ -223,8 +238,8 @@
 
   <section id="economics">
     <div class="wrap">
-      <span class="section-eyebrow">Экономика и гарантии</span>
-      <h2 style="margin-bottom:24px">Как обычно vs. как у нас</h2>
+      <div class="sec-h"><span class="n">02</span><h2>Экономика и гарантии</h2><span class="rule"></span></div>
+      <p class="sec-sub">Как обычно vs. как у нас</p>
       <table class="compare">
         <thead><tr><th>Как обычно</th><th>Как у нас</th></tr></thead>
         <tbody>
@@ -240,8 +255,8 @@
 
   <section id="fit">
     <div class="wrap">
-      <span class="section-eyebrow">Для кого канал (и для кого нет)</span>
-      <h2 style="margin-bottom:20px">Категории</h2>
+      <div class="sec-h"><span class="n">03</span><h2>Для кого канал (и для кого нет)</h2><span class="rule"></span></div>
+      <p class="sec-sub">Категории</p>
       <div class="text-panel">
         Работаем с товарами и сервисами, за которые промоутеру не стыдно перед своими: e-com, приложения, подписки, FMCG, локальные сервисы.
         <strong>Не берём:</strong> кредитные и азартные продукты, «серые» БАДы, всё, что не пройдёт нашу проверку.
@@ -252,8 +267,8 @@
 
   <section id="pilot">
     <div class="wrap">
-      <span class="section-eyebrow">Формат пилота</span>
-      <h2 style="margin-bottom:20px">Первая волна</h2>
+      <div class="sec-h"><span class="n">04</span><h2>Формат пилота</h2><span class="rule"></span></div>
+      <p class="sec-sub">Первая волна</p>
       <div class="text-panel">
         5 брендов · 30–50 промоутеров · Telegram-канал распространения · депозит от [сумма — после решения по прайсингу] ·
         личный отчёт по конверсиям · выделенный менеджер (основатель). Цель — совместно замерить вашу реальную
@@ -264,8 +279,8 @@
 
   <section id="faq">
     <div class="wrap">
-      <span class="section-eyebrow">FAQ</span>
-      <h2 style="margin-bottom:24px">Частые вопросы</h2>
+      <div class="sec-h"><span class="n">05</span><h2>FAQ</h2><span class="rule"></span></div>
+      <p class="sec-sub">Частые вопросы</p>
       <div id="faqList">
         <div class="faq-item">
           <button class="faq-q">Чем это отличается от посевов у микроблогеров? <span class="chev">▾</span></button>
