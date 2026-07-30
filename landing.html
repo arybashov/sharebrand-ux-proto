@@ -42,12 +42,12 @@
       radial-gradient(1200px 700px at 78% -10%, rgba(124,92,255,.18), transparent 60%),
       radial-gradient(1000px 600px at 5% 8%, rgba(37,208,192,.12), transparent 55%),
       var(--bg);
-    border-bottom: 1px solid var(--line);
   }
-  .manifest .wrap { padding: 64px 24px 36px; text-align: left; }
+  .manifest .wrap { padding: 64px 24px 40px; text-align: left; }
   .brand-mark {
-    display: inline-flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px;
-    letter-spacing: -0.01em; color: var(--ink); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px;
+    letter-spacing: -0.01em; color: var(--ink);
+    padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--line);
   }
   .brand-mark .mark { width: 30px; height: auto; flex: 0 0 auto; }
   .brand-mark .dim { color: var(--ink-faint); font-weight: 700; }
@@ -85,13 +85,20 @@
     border-radius: var(--radius-s); background: #0c0d13; overflow: hidden;
   }
 
-  /* ---- Two doors ---- */
-  .doors { flex: 1 1 auto; display: flex; min-height: 420px; }
-  .door {
-    flex: 1 1 50%; display: flex; align-items: center; justify-content: center; padding: 48px 32px;
-    text-decoration: none; position: relative; transition: flex-grow 0.25s ease;
+  /* ---- Two doors (brandbook .logo-hero card treatment: bordered, rounded,
+     radial-glow card floating on the dark canvas — not a flush full-bleed split) ---- */
+  .doors {
+    flex: 1 1 auto; display: flex; gap: 20px; min-height: 420px;
+    max-width: 1160px; width: 100%; margin: 0 auto; padding: 0 24px 64px; background: var(--bg);
   }
-  .door-inner { max-width: 380px; }
+  .door {
+    flex: 1 1 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 48px 32px; text-decoration: none; position: relative;
+    border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .door:hover { transform: translateY(-3px); border-color: var(--pulse); }
+  .door-inner { max-width: 340px; display: flex; flex-direction: column; align-items: center; }
   .door-eyebrow {
     display: inline-flex; font-size: 11.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
     padding: 5px 12px; border-radius: 100px; margin-bottom: 18px;
@@ -100,17 +107,23 @@
   .door p { font-size: 14.5px; line-height: 1.55; margin: 0 0 26px; }
   .door-counter { font-size: 12.5px; font-weight: 700; margin-top: 14px; }
 
-  .door-light { background: var(--door-light-bg); color: var(--door-light-ink); }
+  .door-light {
+    background: radial-gradient(620px 320px at 50% -25%, rgba(124,92,255,.14), transparent 60%), var(--door-light-bg);
+    color: var(--door-light-ink); border-color: rgba(20,21,28,0.12);
+  }
   .door-light .door-eyebrow { background: rgba(124,92,255,0.12); color: #5B3DF0; }
   .door-light p { color: var(--door-light-dim); }
   .door-light .door-counter { color: var(--share); }
-  .door-light:hover { background: var(--door-light-bg-hover); }
+  .door-light:hover { background: radial-gradient(620px 320px at 50% -25%, rgba(124,92,255,.2), transparent 60%), var(--door-light-bg-hover); }
 
-  .door-dark { background: var(--door-dark-bg); color: var(--door-dark-ink); }
+  .door-dark {
+    background: radial-gradient(620px 320px at 50% -25%, rgba(124,92,255,.22), transparent 60%), #0c0d13;
+    color: var(--door-dark-ink);
+  }
   .door-dark .door-eyebrow { background: rgba(124,92,255,0.16); color: #C9BBFF; }
   .door-dark p { color: var(--door-dark-ink-dim); }
   .door-dark .door-counter { color: var(--share); }
-  .door-dark:hover { background: var(--door-dark-bg-hover); }
+  .door-dark:hover { background: radial-gradient(620px 320px at 50% -25%, rgba(124,92,255,.3), transparent 60%), #0c0d13; }
 
   .btn {
     font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
