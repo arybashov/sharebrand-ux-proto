@@ -5,27 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>vdole.ai — платите за покупки, не за показы</title>
 <style>
-  /* Dark is the door's own identity (per brief §II/§VII — "инверсия логотипа"), not a
-     light/dark-mode preference — so these are the DEFAULT values, not behind a media query.
-     data-theme overrides still work for whatever harness toggle might stamp the root. */
+  /* vdole.ai brandbook v2 (brandbook.html) — dark is the brands door's OWN fixed
+     identity, not a light/dark-mode preference (the promoters door is fixed-Paper, see promoters.html). */
   :root {
-    --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
-    --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
+    --bg: #0A0B0F; --surface: #111219; --surface-2: #15161F; --surface-3: #1B1D28;
+    --ink: #EEF0F6; --ink-dim: #9AA0B4; --ink-faint: #6B7186;
     --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
-    --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
-    --accent-2: #8B7CF6; --accent-2-soft: #241F42;
-    --good: #34D399; --good-soft: #123527;
-    --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
-    --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-  :root[data-theme="light"] {
-    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
-    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
-    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
-    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
-    --accent-2: #6C5CE7; --accent-2-soft: #E9E5FF;
-    --good: #1FAE7D; --good-soft: #DCF3EA;
-    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
+    --pulse: #7C5CFF; --flow: #25D0C0; --live: #FF5C8A; --wait: #FFD25C; --share: #3DDC97;
+    --accent: var(--pulse); --accent-ink: #FFFFFF; --accent-soft: rgba(124,92,255,0.16); --accent-soft-ink: #C9BBFF;
+    --accent-2: var(--flow); --accent-2-soft: rgba(37,208,192,0.14);
+    --good: var(--share); --good-soft: rgba(61,220,151,0.14);
+    --shadow: 0 6px 24px rgba(124, 92, 255, 0.35);
+    --radius: 20px; --radius-s: 14px;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
   }
 
   * { box-sizing: border-box; }
@@ -45,7 +37,7 @@
   }
   .pnav .wrap { display: flex; align-items: center; gap: 20px; height: 58px; max-width: 1040px; }
   .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
-  .brand .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+  .brand .mark { width: 26px; height: auto; flex: 0 0 auto; }
   .pnav .back { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); text-decoration: none; }
   .pnav .spacer { flex: 1 1 auto; }
   .pnav .cross-link {
@@ -65,18 +57,18 @@
     border-bottom: 1px solid var(--line);
   }
   .hero .wrap { max-width: 720px; padding: 56px 24px; text-align: left; }
-  h1 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; }
+  h1 { font-size: clamp(32px, 5.5vw, 56px); line-height: 1.06; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; }
   .hero-sub { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); margin: 0 0 26px; }
   .btn {
     font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
-    padding: 14px 22px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
+    padding: 14px 22px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
   }
-  .btn.primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
+  .btn.primary { background: linear-gradient(135deg, var(--pulse), #5B3DF0); color: #fff; box-shadow: var(--shadow); }
   .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
 
 
   .pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .pain-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .pain-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
   .pain-card h3 { font-size: 14.5px; margin: 0 0 8px; }
   .pain-card p { font-size: 13px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
 
@@ -96,9 +88,9 @@
   table.compare tr:first-child td { border-top: 0; }
   table.compare td.bad { color: var(--ink-faint); }
   table.compare td.good { color: var(--ink); }
-  table.compare td.good strong { color: var(--good); }
+  table.compare td.good strong { color: var(--flow); }
 
-  .text-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; font-size: 14.5px; line-height: 1.65; color: var(--ink-dim); }
+  .text-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 28px; font-size: 14.5px; line-height: 1.65; color: var(--ink-dim); }
   .text-panel strong { color: var(--ink); }
 
   .faq-item { border-bottom: 1px solid var(--line); }
@@ -109,7 +101,7 @@
   .faq-item.open .faq-a { max-height: 240px; }
   .faq-a p { font-size: 13.5px; line-height: 1.6; color: var(--ink-dim); margin: 0 4px 18px; }
 
-  .signup-panel { background: linear-gradient(155deg, var(--accent-soft), var(--surface) 55%, var(--accent-2-soft)); border: 1px solid var(--line); border-radius: 24px; padding: 40px 32px; }
+  .signup-panel { background: linear-gradient(155deg, var(--accent-soft), var(--surface) 55%, var(--accent-2-soft)); border: 1px solid var(--line); border-radius: var(--radius); padding: 40px 32px; }
   .signup-panel .head { text-align: center; margin-bottom: 28px; }
   .signup-panel .head h2 { margin-bottom: 8px; }
   .signup-form { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
@@ -146,7 +138,7 @@
 <body>
   <nav class="site-tabs">
     <a href="landing.html" class="active">🚀 Лендинг</a>
-    <a href="landing-styles.html">🎨 20 стилей</a>
+    <a href="brandbook.html">🎨 Брендбук</a>
     <a href="index.html">📱 Mini App</a>
     <a href="dashboard.html">📊 Дашборд (новый)</a>
     <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
@@ -154,7 +146,28 @@
 
   <div class="pnav">
     <div class="wrap">
-      <a class="brand" href="landing.html"><span class="mark">SB</span> vdole.ai</a>
+      <a class="brand" href="landing.html">
+        <svg class="mark" viewBox="0 0 470 200" aria-hidden="true">
+          <defs><linearGradient id="vdMarkGradB" x1="0" x2="470" y1="0" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FF5C8A"/><stop offset=".5" stop-color="#7C5CFF"/><stop offset="1" stop-color="#25D0C0"/></linearGradient></defs>
+          <g fill="url(#vdMarkGradB)">
+            <rect x="10"  y="33"  width="26" height="64"  rx="13"/>
+            <rect x="48"  y="58"  width="26" height="64"  rx="13"/>
+            <rect x="86"  y="83"  width="26" height="64"  rx="13"/>
+            <rect x="124" y="83"  width="26" height="64"  rx="13"/>
+            <rect x="162" y="58"  width="26" height="64"  rx="13"/>
+            <rect x="200" y="33"  width="26" height="64"  rx="13"/>
+            <rect x="260" y="25"  width="30" height="150" rx="15"/>
+            <rect x="306" y="23"  width="26" height="64"  rx="13"/>
+            <rect x="344" y="23"  width="26" height="64"  rx="13"/>
+            <rect x="306" y="113" width="26" height="64"  rx="13"/>
+            <rect x="344" y="113" width="26" height="64"  rx="13"/>
+            <rect x="382" y="30"  width="26" height="140" rx="13"/>
+            <rect x="420" y="45"  width="26" height="110" rx="13"/>
+          </g>
+        </svg>
+        vdole.ai
+      </a>
       <a class="back" href="landing.html">← Манифест</a>
       <span class="spacer"></span>
       <a class="cross-link" href="promoters.html">Вы промоутер? →</a>
@@ -215,8 +228,8 @@
       <table class="compare">
         <thead><tr><th>Как обычно</th><th>Как у нас</th></tr></thead>
         <tbody>
-          <tr><td class="bad">Оплата за показы/посты, результат — «как пойдёт»</td><td class="good"><strong>CPA:</strong> платите за подтверждённую покупку</td></tr>
-          <tr><td class="bad">Бюджет сгорает независимо от продаж</td><td class="good"><strong>Депозит с эскроу-логикой:</strong> не продано — не списано</td></tr>
+          <tr><td class="bad">Оплата за показы/посты, результат — «как пойдёт»</td><td class="good"><strong style="color:var(--share)">CPA:</strong> платите за подтверждённую покупку</td></tr>
+          <tr><td class="bad">Бюджет сгорает независимо от продаж</td><td class="good"><strong style="color:var(--share)">Депозит с эскроу-логикой:</strong> не продано — не списано</td></tr>
           <tr><td class="bad">Маркировка — ваша головная боль и риск штрафов</td><td class="good"><strong>Erid/ЕРИР — автоматически;</strong> публикация без маркировки невозможна технически</td></tr>
           <tr><td class="bad">Накрутки и боты</td><td class="good"><strong>Антифрод + холд-период:</strong> платим за реальные покупки реальных людей</td></tr>
           <tr><td class="bad">Один блогер = одна аудитория</td><td class="good"><strong>Сотни доверенных микро-аудиторий</strong> одним запуском</td></tr>

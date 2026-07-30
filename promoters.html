@@ -6,43 +6,18 @@
 <title>vdole.ai — твой голос, твои друзья, твоя доля</title>
 <style>
   :root {
-    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
-    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
-    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
-    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
-    --accent-2: #6C5CE7; --accent-2-soft: #E9E5FF;
-    --good: #1FAE7D; --good-soft: #DCF3EA;
-    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
-    --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
-      --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
-      --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
-      --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
-      --accent-2: #8B7CF6; --accent-2-soft: #241F42;
-      --good: #34D399; --good-soft: #123527;
-      --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
-    --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
-    --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
-    --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
-    --accent-2: #8B7CF6; --accent-2-soft: #241F42;
-    --good: #34D399; --good-soft: #123527;
-    --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
-  }
-  :root[data-theme="light"] {
-    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
-    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
-    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
-    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
-    --accent-2: #6C5CE7; --accent-2-soft: #E9E5FF;
-    --good: #1FAE7D; --good-soft: #DCF3EA;
-    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
+    /* vdole.ai brandbook v2 (brandbook.html) — Paper is the promoters' door's OWN fixed
+       identity, not a light-mode preference (the brands door is fixed-dark, see brands.html). */
+    --bg: #F4F5FA; --surface: #FFFFFF; --surface-2: #ECEDF5; --surface-3: #E3E5F0;
+    --ink: #14151C; --ink-dim: #5B5F70; --ink-faint: #8A8FA3;
+    --line: rgba(20, 21, 28, 0.08); --line-strong: rgba(20, 21, 28, 0.14);
+    --pulse: #7C5CFF; --flow: #25D0C0; --live: #FF5C8A; --wait: #FFD25C; --share: #3DDC97;
+    --accent: var(--pulse); --accent-ink: #FFFFFF; --accent-soft: rgba(124,92,255,0.10); --accent-soft-ink: #5B3DF0;
+    --accent-2: var(--flow); --accent-2-soft: rgba(37,208,192,0.12);
+    --good: #12A876; --good-soft: rgba(61,220,151,0.14);
+    --shadow: 0 6px 24px rgba(124, 92, 255, 0.28);
+    --radius: 20px; --radius-s: 14px;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
   }
 
   * { box-sizing: border-box; }
@@ -62,7 +37,7 @@
   }
   .pnav .wrap { display: flex; align-items: center; gap: 20px; height: 58px; max-width: 1040px; }
   .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
-  .brand .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+  .brand .mark { width: 26px; height: auto; flex: 0 0 auto; color: var(--ink); }
   .pnav .back { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); text-decoration: none; }
   .pnav .spacer { flex: 1 1 auto; }
   .pnav .cross-link {
@@ -83,28 +58,28 @@
     border-bottom: 1px solid var(--line);
   }
   .hero .wrap { max-width: 720px; padding: 56px 24px 48px; }
-  h1 { font-size: clamp(30px, 4.2vw, 42px); line-height: 1.1; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; }
+  h1 { font-size: clamp(32px, 5.5vw, 56px); line-height: 1.06; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; }
   .hero-sub { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); max-width: 480px; margin: 0 0 26px; }
   .btn {
     font-family: inherit; font-size: 14.5px; font-weight: 700; text-decoration: none; cursor: pointer;
-    padding: 14px 22px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
+    padding: 14px 22px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent;
   }
-  .btn.primary { background: var(--accent); color: #fff; box-shadow: var(--shadow); }
+  .btn.primary { background: linear-gradient(135deg, var(--pulse), #5B3DF0); color: #fff; box-shadow: var(--shadow); }
   .hero-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 14px; }
 
 
   /* ---- Thesis cards ---- */
   .thesis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .thesis-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .thesis-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
   .thesis-card h3 { font-size: 14.5px; margin: 0 0 8px; }
   .thesis-card p { font-size: 13px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
 
   /* ---- Timeline ---- */
   .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; position: relative; }
-  .timeline::before { content: ""; position: absolute; top: 23px; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: 0.35; }
+  .timeline::before { content: ""; position: absolute; top: 23px; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, var(--pulse), var(--flow)); opacity: 0.35; }
   .tl-step { position: relative; padding: 0 12px; text-align: center; }
   .tl-step .num {
-    width: 46px; height: 46px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent);
+    width: 46px; height: 46px; border-radius: 50%; background: var(--surface); border: 2px solid var(--pulse);
     color: var(--accent-soft-ink); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin: 0 auto 16px; position: relative; z-index: 1;
   }
   .tl-step h3 { font-size: 14px; margin: 0 0 8px; }
@@ -119,17 +94,17 @@
   }
 
   /* ---- Money block ---- */
-  .money-panel { background: var(--surface-2); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; }
+  .money-panel { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 28px; }
   .money-panel p { font-size: 14.5px; line-height: 1.65; color: var(--ink); margin: 0; }
-  .money-panel strong { color: var(--ink); }
+  .money-panel strong { color: var(--good); }
 
   /* ---- Safety checklist ---- */
   .checklist { display: flex; flex-direction: column; gap: 12px; }
-  .checklist-row { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
-  .checklist-row .ck { color: var(--good); font-weight: 800; flex: 0 0 auto; }
+  .checklist-row { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 14px 16px; }
+  .checklist-row .ck { color: var(--flow); font-weight: 800; flex: 0 0 auto; }
 
   /* ---- Plain text block ---- */
-  .text-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; font-size: 14.5px; line-height: 1.65; color: var(--ink-dim); }
+  .text-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 28px; font-size: 14.5px; line-height: 1.65; color: var(--ink-dim); }
 
   /* ---- FAQ accordion ---- */
   .faq-item { border-bottom: 1px solid var(--line); }
@@ -141,7 +116,7 @@
   .faq-a p { font-size: 13.5px; line-height: 1.6; color: var(--ink-dim); margin: 0 4px 18px; }
 
   /* ---- Signup form ---- */
-  .signup-panel { background: linear-gradient(155deg, var(--accent-soft), var(--surface) 55%, var(--accent-2-soft)); border: 1px solid var(--line); border-radius: 24px; padding: 40px 32px; }
+  .signup-panel { background: linear-gradient(155deg, var(--accent-soft), var(--surface) 55%, var(--accent-2-soft)); border: 1px solid var(--line); border-radius: var(--radius); padding: 40px 32px; }
   .signup-panel .head { text-align: center; margin-bottom: 28px; }
   .signup-panel .head h2 { margin-bottom: 8px; }
   .signup-panel .head p { color: var(--ink-dim); font-size: 14px; margin: 0; }
@@ -171,7 +146,7 @@
 <body>
   <nav class="site-tabs">
     <a href="landing.html" class="active">🚀 Лендинг</a>
-    <a href="landing-styles.html">🎨 20 стилей</a>
+    <a href="brandbook.html">🎨 Брендбук</a>
     <a href="index.html">📱 Mini App</a>
     <a href="dashboard.html">📊 Дашборд (новый)</a>
     <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
@@ -179,7 +154,24 @@
 
   <div class="pnav">
     <div class="wrap">
-      <a class="brand" href="landing.html"><span class="mark">SB</span> vdole.ai</a>
+      <a class="brand" href="landing.html">
+        <svg class="mark" viewBox="0 0 470 200" aria-hidden="true" fill="currentColor">
+          <rect x="10"  y="33"  width="26" height="64"  rx="13"/>
+          <rect x="48"  y="58"  width="26" height="64"  rx="13"/>
+          <rect x="86"  y="83"  width="26" height="64"  rx="13"/>
+          <rect x="124" y="83"  width="26" height="64"  rx="13"/>
+          <rect x="162" y="58"  width="26" height="64"  rx="13"/>
+          <rect x="200" y="33"  width="26" height="64"  rx="13"/>
+          <rect x="260" y="25"  width="30" height="150" rx="15"/>
+          <rect x="306" y="23"  width="26" height="64"  rx="13"/>
+          <rect x="344" y="23"  width="26" height="64"  rx="13"/>
+          <rect x="306" y="113" width="26" height="64"  rx="13"/>
+          <rect x="344" y="113" width="26" height="64"  rx="13"/>
+          <rect x="382" y="30"  width="26" height="140" rx="13"/>
+          <rect x="420" y="45"  width="26" height="110" rx="13"/>
+        </svg>
+        vdole.ai
+      </a>
       <a class="back" href="landing.html">← Манифест</a>
       <span class="spacer"></span>
       <a class="cross-link" href="brands.html">Вы бренд? →</a>
@@ -189,7 +181,7 @@
   <header class="hero">
     <div class="wrap">
       <div>
-        <h1>Твой голос. Твои друзья. Твоя доля.</h1>
+        <h1>Твой голос. Твои друзья. <span style="color:var(--good)">Твоя доля.</span></h1>
         <p class="hero-sub">
           Нейросеть переозвучивает проверенный обзор бренда твоим голосом. Ты одобряешь каждый ролик.
           Друзья покупают по твоему промокоду — тебе идёт процент с каждой покупки.
