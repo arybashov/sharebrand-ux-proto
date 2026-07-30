@@ -35,7 +35,7 @@
   .site-tabs a.active { color: var(--ink); background: var(--bg); }
   .site-tabs a:hover:not(.active) { color: var(--ink); }
 
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 
   .return-pill-row { display: flex; justify-content: center; padding: 14px 0 0; }
   .return-pill {
@@ -48,10 +48,10 @@
     background:
       radial-gradient(1200px 700px at 78% -10%, rgba(124,92,255,.18), transparent 60%),
       radial-gradient(1000px 600px at 5% 8%, rgba(37,208,192,.12), transparent 55%),
-      var(--surface);
+      var(--bg);
     border-bottom: 1px solid var(--line);
   }
-  .manifest .wrap { padding: 60px 24px 48px; text-align: center; }
+  .manifest .wrap { padding: 64px 24px 36px; text-align: left; }
   .brand-mark {
     display: inline-flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px;
     letter-spacing: -0.01em; color: var(--ink); margin-bottom: 22px;
@@ -61,23 +61,23 @@
   .kicker {
     display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .16em;
     text-transform: uppercase; color: var(--ink-dim); border: 1px solid var(--line); border-radius: 999px;
-    padding: 7px 14px; background: rgba(255,255,255,.02); margin-bottom: 22px;
+    padding: 7px 14px; background: rgba(255,255,255,.02);
   }
   .kicker .dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: linear-gradient(135deg, var(--pulse), var(--flow)); box-shadow: 0 0 12px var(--pulse);
   }
   .manifest h1 {
-    font-size: clamp(40px, 7vw, 72px); line-height: 1.02; letter-spacing: -0.025em; font-weight: 800;
-    margin: 0 auto 18px; max-width: 760px;
+    font-size: clamp(34px, 6vw, 64px); line-height: 1.02; letter-spacing: -0.02em; font-weight: 800;
+    margin: 22px 0 16px;
   }
   .manifest h1 .grad {
     background: linear-gradient(100deg, var(--flow), var(--pulse) 45%, var(--live));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  .manifest p.lede { font-size: clamp(15px, 2vw, 18px); line-height: 1.55; color: var(--ink-dim); max-width: 620px; margin: 0 auto; }
+  .manifest p.lede { max-width: 660px; color: var(--ink-dim); font-size: clamp(15px, 2vw, 18px); margin: 0; }
   .manifest p.lede strong { color: var(--ink); }
-  .chips { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; margin-top: 24px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 26px; }
   .chip {
     font-size: 13px; color: var(--ink); border: 1px solid var(--line-strong); padding: 7px 13px;
     border-radius: 999px; background: rgba(255,255,255,.03);
@@ -88,7 +88,7 @@
   @keyframes spec { 0%, 100% { transform: scaleY(.22); } 50% { transform: scaleY(1); } }
   @media (prefers-reduced-motion: reduce) { .spectro i { animation: none; transform: scaleY(.7); } }
   .hero-spectro {
-    height: 64px; margin: 26px auto 0; max-width: 620px; border: 1px solid var(--line);
+    height: 72px; margin-top: 24px; border: 1px solid var(--line);
     border-radius: var(--radius-s); background: #0c0d13; overflow: hidden;
   }
 

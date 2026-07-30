@@ -56,10 +56,13 @@
 
   /* ---- Hero ---- */
   .hero {
-    background: radial-gradient(560px 320px at 85% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), var(--surface);
+    background:
+      radial-gradient(1200px 700px at 78% -10%, rgba(124,92,255,.10), transparent 60%),
+      radial-gradient(1000px 600px at 5% 8%, rgba(37,208,192,.08), transparent 55%),
+      var(--bg);
     border-bottom: 1px solid var(--line);
   }
-  .hero .wrap { max-width: 720px; padding: 56px 24px 48px; }
+  .hero .wrap { padding: 56px 24px 48px; }
   h1 { font-size: clamp(32px, 5.5vw, 56px); line-height: 1.06; letter-spacing: -0.025em; font-weight: 800; margin: 0 0 16px; }
   .hero-sub { font-size: 15.5px; line-height: 1.6; color: var(--ink-dim); max-width: 480px; margin: 0 0 26px; }
   .btn {
