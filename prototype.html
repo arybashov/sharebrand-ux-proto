@@ -1,62 +1,65 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ShareBrand · Mini App прототип</title>
+<title>vdole.ai · Mini App прототип</title>
 <style>
   /* ============ Tokens ============ */
   :root {
-    --bg: #EAECF2;
+    /* vdole.ai brandbook v2 (brandbook.html) — Paper light mode default; JS applyVariant()
+       re-derives these same tokens per ?variant, this block just avoids a flash of
+       unstyled/wrong-brand colors before that script runs. */
+    --bg: #F4F5FA;
     --surface: #FFFFFF;
-    --surface-2: #F3F2FA;
-    --surface-3: #EAE7F5;
-    --ink: #191A23;
-    --ink-dim: #6B6D7C;
-    --ink-faint: #9799A8;
-    --line: rgba(25, 26, 35, 0.10);
-    --line-strong: rgba(25, 26, 35, 0.16);
-    --accent: #FF6A3D;
+    --surface-2: #ECEDF5;
+    --surface-3: #E3E5F0;
+    --ink: #14151C;
+    --ink-dim: #5B5F70;
+    --ink-faint: #8A8FA3;
+    --line: rgba(20, 21, 28, 0.08);
+    --line-strong: rgba(20, 21, 28, 0.14);
+    --accent: #7C5CFF;
     --accent-ink: #FFFFFF;
-    --accent-soft: #FFE3D6;
-    --accent-soft-ink: #B23E17;
-    --good: #1FAE7D;
-    --good-soft: #DCF3EA;
-    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
-    --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --accent-soft: rgba(124, 92, 255, 0.10);
+    --accent-soft-ink: #5B3DF0;
+    --good: #12A876;
+    --good-soft: rgba(61, 220, 151, 0.14);
+    --shadow: 0 6px 24px rgba(124, 92, 255, 0.28);
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0B0C11;
-      --surface: #16171F;
-      --surface-2: #1E1F2A;
-      --surface-3: #262837;
-      --ink: #F1F1F5;
-      --ink-dim: #9496A6;
-      --ink-faint: #6D6F80;
+      --bg: #0A0B0F;
+      --surface: #111219;
+      --surface-2: #15161F;
+      --surface-3: #1B1D28;
+      --ink: #EEF0F6;
+      --ink-dim: #9AA0B4;
+      --ink-faint: #6B7186;
       --line: rgba(255, 255, 255, 0.08);
       --line-strong: rgba(255, 255, 255, 0.14);
-      --accent: #FF7A4D;
-      --accent-ink: #17181F;
-      --accent-soft: #3A2318;
-      --accent-soft-ink: #FFB08A;
-      --good: #34D399;
-      --good-soft: #123527;
-      --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
+      --accent: #7C5CFF;
+      --accent-ink: #FFFFFF;
+      --accent-soft: rgba(124, 92, 255, 0.16);
+      --accent-soft-ink: #C9BBFF;
+      --good: #3DDC97;
+      --good-soft: rgba(61, 220, 151, 0.14);
+      --shadow: 0 6px 24px rgba(124, 92, 255, 0.35);
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0B0C11; --surface: #16171F; --surface-2: #1E1F2A; --surface-3: #262837;
-    --ink: #F1F1F5; --ink-dim: #9496A6; --ink-faint: #6D6F80;
+    --bg: #0A0B0F; --surface: #111219; --surface-2: #15161F; --surface-3: #1B1D28;
+    --ink: #EEF0F6; --ink-dim: #9AA0B4; --ink-faint: #6B7186;
     --line: rgba(255, 255, 255, 0.08); --line-strong: rgba(255, 255, 255, 0.14);
-    --accent: #FF7A4D; --accent-ink: #17181F; --accent-soft: #3A2318; --accent-soft-ink: #FFB08A;
-    --good: #34D399; --good-soft: #123527;
-    --shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.65), 0 10px 25px -12px rgba(0, 0, 0, 0.5);
+    --accent: #7C5CFF; --accent-ink: #FFFFFF; --accent-soft: rgba(124, 92, 255, 0.16); --accent-soft-ink: #C9BBFF;
+    --good: #3DDC97; --good-soft: rgba(61, 220, 151, 0.14);
+    --shadow: 0 6px 24px rgba(124, 92, 255, 0.35);
   }
   :root[data-theme="light"] {
-    --bg: #EAECF2; --surface: #FFFFFF; --surface-2: #F3F2FA; --surface-3: #EAE7F5;
-    --ink: #191A23; --ink-dim: #6B6D7C; --ink-faint: #9799A8;
-    --line: rgba(25, 26, 35, 0.10); --line-strong: rgba(25, 26, 35, 0.16);
-    --accent: #FF6A3D; --accent-ink: #FFFFFF; --accent-soft: #FFE3D6; --accent-soft-ink: #B23E17;
-    --good: #1FAE7D; --good-soft: #DCF3EA;
-    --shadow: 0 40px 80px -30px rgba(20, 15, 40, 0.35), 0 10px 25px -12px rgba(20, 15, 40, 0.25);
+    --bg: #F4F5FA; --surface: #FFFFFF; --surface-2: #ECEDF5; --surface-3: #E3E5F0;
+    --ink: #14151C; --ink-dim: #5B5F70; --ink-faint: #8A8FA3;
+    --line: rgba(20, 21, 28, 0.08); --line-strong: rgba(20, 21, 28, 0.14);
+    --accent: #7C5CFF; --accent-ink: #FFFFFF; --accent-soft: rgba(124, 92, 255, 0.10); --accent-soft-ink: #5B3DF0;
+    --good: #12A876; --good-soft: rgba(61, 220, 151, 0.14);
+    --shadow: 0 6px 24px rgba(124, 92, 255, 0.28);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -454,7 +457,7 @@
       <button class="navbtn" id="backBtn" aria-label="Назад">
         <svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <div class="navtitle" id="navTitle">ShareBrand</div>
+      <div class="navtitle" id="navTitle">vdole.ai</div>
       <button class="navbtn" id="closeBtn" aria-label="Закрыть">
         <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
       </button>
@@ -474,10 +477,10 @@
 
   // ---- Visual variants: same flow/copy, different token sets. Pick via ?variant=NAME ----
   var VARIANTS = {
-    coral: {
-      label: "Coral · Voice (текущий)",
-      light: { bg:"#EAECF2", surface:"#FFFFFF", "surface-2":"#F3F2FA", "surface-3":"#EAE7F5", ink:"#191A23", "ink-dim":"#6B6D7C", "ink-faint":"#9799A8", line:"rgba(25,26,35,0.10)", "line-strong":"rgba(25,26,35,0.16)", accent:"#FF6A3D", "accent-ink":"#FFFFFF", "accent-soft":"#FFE3D6", "accent-soft-ink":"#B23E17", good:"#1FAE7D", "good-soft":"#DCF3EA" },
-      dark:  { bg:"#0B0C11", surface:"#16171F", "surface-2":"#1E1F2A", "surface-3":"#262837", ink:"#F1F1F5", "ink-dim":"#9496A6", "ink-faint":"#6D6F80", line:"rgba(255,255,255,0.08)", "line-strong":"rgba(255,255,255,0.14)", accent:"#FF7A4D", "accent-ink":"#17181F", "accent-soft":"#3A2318", "accent-soft-ink":"#FFB08A", good:"#34D399", "good-soft":"#123527" }
+    vdole: {
+      label: "vdole · Брендбук (текущий)",
+      light: { bg:"#F4F5FA", surface:"#FFFFFF", "surface-2":"#ECEDF5", "surface-3":"#E3E5F0", ink:"#14151C", "ink-dim":"#5B5F70", "ink-faint":"#8A8FA3", line:"rgba(20,21,28,0.08)", "line-strong":"rgba(20,21,28,0.14)", accent:"#7C5CFF", "accent-ink":"#FFFFFF", "accent-soft":"rgba(124,92,255,0.10)", "accent-soft-ink":"#5B3DF0", good:"#12A876", "good-soft":"rgba(61,220,151,0.14)" },
+      dark:  { bg:"#0A0B0F", surface:"#111219", "surface-2":"#15161F", "surface-3":"#1B1D28", ink:"#EEF0F6", "ink-dim":"#9AA0B4", "ink-faint":"#6B7186", line:"rgba(255,255,255,0.08)", "line-strong":"rgba(255,255,255,0.14)", accent:"#7C5CFF", "accent-ink":"#FFFFFF", "accent-soft":"rgba(124,92,255,0.16)", "accent-soft-ink":"#C9BBFF", good:"#3DDC97", "good-soft":"rgba(61,220,151,0.14)" }
     },
     native: {
       label: "Telegram-native · минимализм",
@@ -494,8 +497,8 @@
   // Flow, not just palette, differs per variant: "full" = original 9-screen onboarding,
   // "micro" = consent+intro merged, whole survey collapsed onto one screen,
   // "quest" = merged intro, 3-card quick-fire quiz with progress + reward toast.
-  var FLOW_MODE = { coral: "full", native: "micro", bold: "quest" };
-  var activeVariant = "coral";
+  var FLOW_MODE = { vdole: "full", native: "micro", bold: "quest" };
+  var activeVariant = "vdole";
 
   function currentTheme() {
     var attr = document.documentElement.getAttribute("data-theme");
@@ -504,8 +507,8 @@
   }
   function applyVariant() {
     var params = new URLSearchParams(location.search);
-    var name = params.get("variant") || "coral";
-    activeVariant = VARIANTS[name] ? name : "coral";
+    var name = params.get("variant") || "vdole";
+    activeVariant = VARIANTS[name] ? name : "vdole";
     var v = VARIANTS[activeVariant];
     var tokens = v[currentTheme()];
     var root = document.documentElement.style;
@@ -600,7 +603,7 @@
 
   // ---------- templates ----------
   function tplIntro() {
-    navTitleEl.textContent = "ShareBrand";
+    navTitleEl.textContent = "vdole.ai";
     backBtn.classList.add("hidden");
     var mode = FLOW_MODE[activeVariant];
 
@@ -656,7 +659,7 @@
         '<h1 class="h-title" style="font-size:19px">Согласие на обработку данных</h1>' +
         '<div class="legal-card">' +
           '<p><strong>Согласие на обработку персональных данных (99-З)</strong> — предварительная версия.</p>' +
-          '<p>Для работы ShareBrand требуется ваше согласие. Голос обрабатывается только на вашем устройстве и не передаётся на серверы. На стороне платформы хранится минимум данных.</p>' +
+          '<p>Для работы vdole.ai требуется ваше согласие. Голос обрабатывается только на вашем устройстве и не передаётся на серверы. На стороне платформы хранится минимум данных.</p>' +
           '<p>⚠️ Финальный текст согласия готовит юрист. Это черновая версия — для ознакомления.</p>' +
         "</div>" +
         '<button class="mainbutton ghost" id="consentModalClose">Понятно, закрыть</button>' +
@@ -690,7 +693,7 @@
       '<h1 class="h-title">Прежде чем начать</h1>' +
       '<div class="legal-card">' +
         '<p><strong>Согласие на обработку персональных данных (99-З)</strong> — предварительная версия.</p>' +
-        '<p>Для работы ShareBrand требуется ваше согласие. Голос обрабатывается только на вашем устройстве и не передаётся на серверы. На стороне платформы хранится минимум данных.</p>' +
+        '<p>Для работы vdole.ai требуется ваше согласие. Голос обрабатывается только на вашем устройстве и не передаётся на серверы. На стороне платформы хранится минимум данных.</p>' +
         '<p>⚠️ Финальный текст согласия готовит юрист. Нажимая «Принимаю», вы подтверждаете ознакомление с предварительной версией.</p>' +
       "</div>";
     mainbarEl.innerHTML = mainBtn("✅ Принимаю", "consent-ok");
@@ -897,7 +900,7 @@
     navTitleEl.textContent = "Каталог роликов";
     backBtn.classList.remove("hidden");
     var cards = CATALOG.map(function (c, idx) {
-      var recommend = idx === 0 && activeVariant !== "coral";
+      var recommend = idx === 0 && activeVariant !== "vdole";
       return (
         '<div class="card">' +
           (recommend ? '<span class="ribbon">🔥 Рекомендуем</span>' : "") +
