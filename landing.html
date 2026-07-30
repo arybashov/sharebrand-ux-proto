@@ -37,13 +37,6 @@
 
   .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 
-  .return-pill-row { display: flex; justify-content: center; padding: 14px 0 0; }
-  .return-pill {
-    display: none; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; text-decoration: none;
-    color: var(--accent-soft-ink); background: var(--accent-soft); padding: 8px 16px; border-radius: 100px;
-  }
-  .return-pill.show { display: inline-flex; }
-
   .manifest {
     background:
       radial-gradient(1200px 700px at 78% -10%, rgba(124,92,255,.18), transparent 60%),
@@ -84,7 +77,7 @@
   }
   .chip.accent { border-color: transparent; background: linear-gradient(135deg, rgba(124,92,255,.22), rgba(37,208,192,.16)); color: #fff; }
   .spectro { display: flex; align-items: flex-end; gap: 3px; height: 100%; width: 100%; padding: 14px; }
-  .spectro i { flex: 1; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, var(--live), var(--pulse) 45%, var(--flow)); animation: spec 1.5s ease-in-out infinite; }
+  .spectro i { flex: 1; align-self: flex-end; transform-origin: bottom; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, var(--live), var(--pulse) 45%, var(--flow)); animation: spec 1.5s ease-in-out infinite; }
   @keyframes spec { 0%, 100% { transform: scaleY(.22); } 50% { transform: scaleY(1); } }
   @media (prefers-reduced-motion: reduce) { .spectro i { animation: none; transform: scaleY(.7); } }
   .hero-spectro {
@@ -154,8 +147,6 @@
     <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
   </nav>
 
-  <div class="return-pill-row"><a class="return-pill" id="returnPill" href="#"></a></div>
-
   <header class="manifest">
     <div class="wrap">
       <div class="brand-mark">
@@ -194,7 +185,7 @@
   </header>
 
   <section class="doors">
-    <a class="door door-light" href="promoters.html" data-door="promoters">
+    <a class="door door-light" href="promoters.html">
       <div class="door-inner">
         <span class="door-eyebrow">Промоутерам</span>
         <h2>Зарабатывай на том, что тебе и так доверяют.</h2>
@@ -203,7 +194,7 @@
         <div class="door-counter">50 мест</div>
       </div>
     </a>
-    <a class="door door-dark" href="brands.html" data-door="brands">
+    <a class="door door-dark" href="brands.html">
       <div class="door-inner">
         <span class="door-eyebrow">Брендам</span>
         <h2>Платите за покупки. Не за обещания.</h2>
@@ -235,21 +226,6 @@
       spec.appendChild(b);
     }
   }
-  var KEY = "vdole_door";
-  Array.prototype.forEach.call(document.querySelectorAll("[data-door]"), function (el) {
-    el.addEventListener("click", function () {
-      try { localStorage.setItem(KEY, el.getAttribute("data-door")); } catch (e) {}
-    });
-  });
-  try {
-    var last = localStorage.getItem(KEY);
-    if (last === "promoters" || last === "brands") {
-      var pill = document.getElementById("returnPill");
-      pill.href = last + ".html";
-      pill.textContent = last === "promoters" ? "Продолжить как промоутер →" : "Продолжить как бренд →";
-      pill.classList.add("show");
-    }
-  } catch (e) {}
 })();
 </script>
 </body>
