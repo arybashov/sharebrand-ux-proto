@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vdole.ai — редактор логотипа VD</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #0a0b0f; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #eef0f6; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+  .site-tabs { display: flex; gap: 4px; padding: 8px 20px; background: #111219; flex: 0 0 auto; }
+  .site-tabs a { font-size: 11.5px; font-weight: 700; text-decoration: none; color: #6b7186; padding: 6px 12px; border-radius: 7px; }
+  .site-tabs a.active { color: #eef0f6; background: #1b1d28; }
+  .site-tabs a:hover:not(.active) { color: #9aa0b4; }
+
+  .layout { flex: 1 1 auto; display: flex; min-height: 0; }
+
+  /* ---- Canvas ---- */
+  .stage { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; gap: 32px; padding: 24px 24px 60px; min-width: 0; overflow: auto; }
+  .canvas-block { position: relative; }
+  .canvas-wrap { position: relative; border: 1px solid #1f2437; border-radius: 8px; overflow: hidden; }
+  .canvas-wrap svg { display: block; }
+  .variant-block { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .variant-head { display: flex; align-items: center; gap: 14px; }
+  .variant-title { font-weight: 800; color: #eef0f6; font-size: 12.5px; }
+  .variant-ctrl { display: flex; align-items: center; gap: 6px; }
+  .variant-ctrl label { font-size: 11px; color: #6b7186; }
+  .variant-ctrl input[type=color] { width: 28px; height: 22px; border: 1px solid #262a3d; border-radius: 5px; background: none; padding: 0; cursor: pointer; }
+  .variant-dl { font-size: 11px; padding: 5px 10px; }
+
+  /* ---- Panel ---- */
+  .panel {
+    flex: 0 0 340px; background: #111219; border-left: 1px solid #1f2437; overflow-y: auto; padding: 18px 18px 40px;
+  }
+  .panel h2 { font-size: 13px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .group { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1b1d28; }
+  .group:last-child { border-bottom: none; }
+  .group-title {
+    font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7186; margin-bottom: 10px;
+  }
+  .row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .row label { flex: 0 0 118px; font-size: 12px; color: #9aa0b4; }
+  .row input[type=range] { flex: 1 1 auto; accent-color: #7C5CFF; }
+  .row input[type=number] {
+    width: 56px; background: #0c0d13; border: 1px solid #262a3d; color: #eef0f6; border-radius: 6px;
+    padding: 4px 6px; font-size: 12px; font-family: inherit;
+  }
+  .row input[type=color] { width: 34px; height: 26px; border: 1px solid #262a3d; border-radius: 6px; background: none; padding: 0; cursor: pointer; }
+  .row input[type=checkbox] { accent-color: #7C5CFF; width: 15px; height: 15px; }
+  .row.check label { flex: 1 1 auto; }
+  .btn-row { display: flex; gap: 8px; margin-top: 4px; }
+  button.tool {
+    flex: 1 1 auto; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    background: #1b1d28; color: #eef0f6; border: 1px solid #262a3d; border-radius: 8px; padding: 9px 10px;
+  }
+  button.tool:hover { border-color: #7C5CFF; }
+  button.tool.primary { background: linear-gradient(135deg, #7C5CFF, #5B3DF0); border-color: transparent; }
+  textarea.svg-out {
+    width: 100%; height: 90px; margin-top: 8px; background: #0c0d13; border: 1px solid #262a3d; color: #6b7186;
+    border-radius: 8px; padding: 8px; font: 10.5px/1.4 ui-monospace, Consolas, monospace; resize: vertical;
+  }
+  .shape-row {
+    margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed #1b1d28;
+  }
+  .shape-row .stripe-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .shape-row .shape-idx { font-size: 10.5px; font-weight: 800; color: #6b7186; }
+  .shape-row .row { margin-bottom: 5px; }
+  .shape-row .row label { flex: 0 0 46px; font-size: 10px; color: #6b7186; }
+  .shape-row input[type=number] {
+    width: 40px; background: #0c0d13; border: 1px solid #262a3d; color: #eef0f6; border-radius: 5px;
+    padding: 3px 3px; font-size: 10.5px; font-family: inherit;
+  }
+  .shape-row .shape-del {
+    flex: 0 0 auto; width: 20px; height: 20px; line-height: 18px; text-align: center; padding: 0;
+    background: #2a1620; color: #ff5c8a; border: 1px solid #3a1e28; border-radius: 5px; cursor: pointer; font-size: 13px;
+  }
+  .shape-row .shape-del:hover { background: #3a1620; }
+  #btnAddShape { width: 100%; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <nav class="site-tabs">
+    <a href="landing.html">🚀 Лендинг</a>
+    <a href="brandbook.html">🎨 Брендбук</a>
+    <a href="logo-editor.html" class="active">🔤 Лого-редактор</a>
+    <a href="index.html">📱 Mini App</a>
+    <a href="dashboard.html">📊 Дашборд (новый)</a>
+    <a href="dashboard-current.html">🗂️ Дашборд (текущий)</a>
+  </nav>
+
+  <div class="layout">
+    <div class="stage">
+      <div class="canvas-block">
+        <div class="canvas-wrap" id="canvasWrap"></div>
+      </div>
+
+      <div class="canvas-block variant-block">
+        <div class="variant-head">
+          <span class="variant-title">На светлом фоне</span>
+          <span class="variant-ctrl"><label>Фон</label><input type="color" id="p_lightBg" value="#f4f5fa"></span>
+          <span class="variant-ctrl"><label>Заливка</label><input type="color" id="p_lightFill" value="#15161f"></span>
+          <button type="button" class="tool variant-dl" id="btnDlLight">Скачать SVG</button>
+        </div>
+        <div class="canvas-wrap" id="canvasWrapLight"></div>
+      </div>
+
+      <div class="canvas-block variant-block">
+        <div class="variant-head">
+          <span class="variant-title">Чёрно-белый</span>
+          <span class="variant-ctrl"><label>Фон</label><input type="color" id="p_bwBg" value="#ffffff"></span>
+          <span class="variant-ctrl"><label>Заливка</label><input type="color" id="p_bwFill" value="#0a0b0f"></span>
+          <button type="button" class="tool variant-dl" id="btnDlBw">Скачать SVG</button>
+        </div>
+        <div class="canvas-wrap" id="canvasWrapBW"></div>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <h2>Процедурный логотип VD</h2>
+
+      <div class="group">
+        <div class="group-title">Холст / сетка</div>
+        <div class="row"><label>Тёмный фон</label><input type="checkbox" id="p_darkBg" checked></div>
+        <div class="row"><label>Сетка (как референс)</label><input type="checkbox" id="p_grid" checked></div>
+        <div class="row"><label>Шаг сетки</label><input type="range" id="p_gridStep" min="10" max="80" value="36"><input type="number" id="p_gridStepN" value="36"></div>
+        <div class="row check"><label>Дэшированная сетка</label><input type="checkbox" id="p_gridDashed"></div>
+        <div class="row"><label>Штрих, ширина</label><input type="range" id="p_gridDashW" min="2" max="60" value="10"><input type="number" id="p_gridDashWN" value="10"></div>
+        <div class="row"><label>Шаг (зазор) штриха</label><input type="range" id="p_gridDashGap" min="2" max="60" value="8"><input type="number" id="p_gridDashGapN" value="8"></div>
+        <div class="row"><label>Масштаб</label><input type="range" id="p_scale" min="0.5" max="3" step="0.05" value="1.6"><input type="number" id="p_scaleN" value="1.6" step="0.05"></div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Цвет</div>
+        <div class="row check"><label>Градиент (иначе — сплошной)</label><input type="checkbox" id="p_useGrad" checked></div>
+        <div class="row"><label>Цвет 1 (Live)</label><input type="color" id="p_c1" value="#ff5c8a"></div>
+        <div class="row"><label>Цвет 2 (Pulse)</label><input type="color" id="p_c2" value="#7c5cff"></div>
+        <div class="row"><label>Цвет 3 (Flow)</label><input type="color" id="p_c3" value="#25d0c0"></div>
+        <div class="row"><label>Сплошной цвет</label><input type="color" id="p_mono" value="#5ecfd6"></div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Полоски — конструктор</div>
+        <div class="row"><label>Ширина полосок</label><input type="range" id="p_stripeW" min="10" max="60" value="26"><input type="number" id="p_stripeWN" value="26"></div>
+        <div class="row"><label>Шаг между полосками</label><input type="range" id="p_step" min="0" max="40" value="4"><input type="number" id="p_stepN" value="4"></div>
+        <div class="row"><label>Радиус (все элементы)</label><input type="range" id="p_rx" min="0" max="30" value="8"><input type="number" id="p_rxN" value="8"></div>
+        <div id="shapeRows"></div>
+        <button type="button" class="tool" id="btnAddShape">+ Добавить полоску</button>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Текст «VDOLE»</div>
+        <div class="row check"><label>Показывать текст</label><input type="checkbox" id="p_textShow" checked></div>
+        <div class="row"><label>Текст</label><input type="text" id="p_text" value="VDOLE" style="flex:1 1 auto;background:#0c0d13;border:1px solid #262a3d;color:#eef0f6;border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;"></div>
+        <div class="row check"><label>КАПС (заглавные)</label><input type="checkbox" id="p_textCaps" checked></div>
+        <div class="row"><label>Размер</label><input type="range" id="p_textSize" min="16" max="160" value="64"><input type="number" id="p_textSizeN" value="64"></div>
+        <div class="row"><label>Толщина (weight)</label><input type="range" id="p_textWeight" min="300" max="900" step="100" value="800"><input type="number" id="p_textWeightN" value="800"></div>
+        <div class="row"><label>Межбукв. интервал</label><input type="range" id="p_textSpacing" min="-0.1" max="1.5" step="0.01" value="0.02"><input type="number" id="p_textSpacingN" value="0.02" step="0.01"></div>
+        <div class="row"><label>Отступ от лого</label><input type="range" id="p_textGap" min="0" max="120" value="40"><input type="number" id="p_textGapN" value="40"></div>
+        <div class="row"><label>Сдвиг влево/вправо</label><input type="range" id="p_textOffsetX" min="-200" max="200" step="1" value="0"><input type="number" id="p_textOffsetXN" value="0"></div>
+        <div class="row"><label>Цвет текста</label><input type="color" id="p_textColor" value="#eef0f6"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="tool" id="btnReset">Сбросить</button>
+        <button class="tool primary" id="btnCopy">Скопировать SVG</button>
+        <button class="tool" id="btnDownload">Скачать SVG</button>
+      </div>
+      <textarea class="svg-out" id="svgOut" readonly></textarea>
+    </aside>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DEFAULTS = {
+    darkBg: true, grid: true, gridStep: 36, gridDashed: false, gridDashW: 10, gridDashGap: 8, scale: 1.6,
+    useGrad: true, c1: "#ff5c8a", c2: "#7c5cff", c3: "#25d0c0", mono: "#5ecfd6",
+    stripeW: 26, step: 4, rx: 8,
+    textShow: true, text: "VDOLE", textCaps: true, textSize: 64, textWeight: 800,
+    textSpacing: 0.02, textGap: 40, textOffsetX: 0, textColor: "#eef0f6"
+  };
+
+  // stripes flow left-to-right with a fixed shared width (p.stripeW) and step (p.step).
+  // dx = one-off extra gap inserted before this stripe (cascades to everything after it).
+  // split/splitGap turn a single stripe into N equal vertical segments with a gap between them.
+  var DEFAULT_STRIPES = [
+    { y: 0,    h: 58,  dx: 0, split: 1, splitGap: 0 },
+    { y: 25,   h: 58,  dx: 0, split: 1, splitGap: 0 },
+    { y: 50,   h: 58,  dx: 0, split: 1, splitGap: 0 },
+    { y: 25,   h: 58,  dx: 0, split: 1, splitGap: 0 },
+    { y: 0,    h: 58,  dx: 0, split: 1, splitGap: 0 },
+    { y: -0.5, h: 109, dx: 2, split: 1, splitGap: 0 },
+    { y: -0.5, h: 109, dx: 0, split: 2, splitGap: 57 },
+    { y: -0.5, h: 109, dx: 0, split: 2, splitGap: 57 },
+    { y: 8.5,  h: 91,  dx: 0, split: 1, splitGap: 0 }
+  ];
+
+  var BRAND_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif';
+
+  var fields = Object.keys(DEFAULTS);
+  var canvasWrap = document.getElementById("canvasWrap");
+  var canvasWrapLight = document.getElementById("canvasWrapLight");
+  var canvasWrapBW = document.getElementById("canvasWrapBW");
+  var svgOut = document.getElementById("svgOut");
+  var shapeRowsEl = document.getElementById("shapeRows");
+  var stripes = [];
+
+  function resetStripes() {
+    stripes = DEFAULT_STRIPES.map(function (s) {
+      return { y: s.y, h: s.h, dx: s.dx, split: s.split, splitGap: s.splitGap };
+    });
+  }
+
+  function wirePair(row, cls, apply) {
+    var r = row.querySelector(cls), n = row.querySelector(cls + "N");
+    function commit(v) { apply(v); render(); }
+    r.addEventListener("input", function () { n.value = r.value; commit(parseFloat(r.value)); });
+    n.addEventListener("input", function () { r.value = n.value; commit(parseFloat(n.value)); });
+  }
+
+  function renderShapeRows() {
+    shapeRowsEl.innerHTML = "";
+    stripes.forEach(function (s, i) {
+      var block = document.createElement("div");
+      block.className = "shape-row";
+      block.innerHTML =
+        '<div class="stripe-head"><span class="shape-idx">#' + i + '</span><button type="button" class="shape-del" title="Удалить полоску">×</button></div>' +
+        '<div class="row"><label title="Вертикальное положение">Y</label>' +
+          '<input type="range" class="s-y" min="-100" max="200" step="1" value="' + s.y + '">' +
+          '<input type="number" class="s-yN" value="' + s.y + '"></div>' +
+        '<div class="row"><label title="Высота до разбивки на части">H</label>' +
+          '<input type="range" class="s-h" min="4" max="220" step="1" value="' + s.h + '">' +
+          '<input type="number" class="s-hN" value="' + s.h + '"></div>' +
+        '<div class="row"><label title="Доп. сдвиг — двигает и всё, что после">ΔX</label>' +
+          '<input type="range" class="s-dx" min="-80" max="120" step="1" value="' + s.dx + '">' +
+          '<input type="number" class="s-dxN" value="' + s.dx + '"></div>' +
+        '<div class="row"><label title="Число частей — разбить по вертикали">части</label>' +
+          '<input type="range" class="s-split" min="1" max="4" step="1" value="' + s.split + '">' +
+          '<input type="number" class="s-splitN" value="' + s.split + '"></div>' +
+        '<div class="row"><label title="Зазор между частями">зазор</label>' +
+          '<input type="range" class="s-splitgap" min="0" max="150" step="1" value="' + s.splitGap + '">' +
+          '<input type="number" class="s-splitgapN" value="' + s.splitGap + '"></div>';
+      shapeRowsEl.appendChild(block);
+
+      wirePair(block, ".s-y", function (v) { s.y = v || 0; });
+      wirePair(block, ".s-h", function (v) { s.h = Math.max(1, v || 1); });
+      wirePair(block, ".s-dx", function (v) { s.dx = v || 0; });
+      wirePair(block, ".s-split", function (v) { s.split = Math.max(1, Math.round(v || 1)); });
+      wirePair(block, ".s-splitgap", function (v) { s.splitGap = Math.max(0, v || 0); });
+
+      block.querySelector(".shape-del").addEventListener("click", function () {
+        stripes.splice(i, 1);
+        renderShapeRows();
+        render();
+      });
+    });
+  }
+
+  function getParams() {
+    var p = {};
+    fields.forEach(function (k) {
+      var el = document.getElementById("p_" + k);
+      if (!el) return;
+      if (el.type === "checkbox") p[k] = el.checked;
+      else if (el.type === "color" || el.type === "text") p[k] = el.value;
+      else p[k] = parseFloat(el.value);
+    });
+    return p;
+  }
+
+  function setParams(p) {
+    fields.forEach(function (k) {
+      var el = document.getElementById("p_" + k);
+      var elN = document.getElementById("p_" + k + "N");
+      if (!el) return;
+      if (el.type === "checkbox") el.checked = p[k];
+      else if (el.type === "color" || el.type === "text") el.value = p[k];
+      else { el.value = p[k]; if (elN) elN.value = p[k]; }
+    });
+  }
+
+  // ---- build render-ready shape list: fixed width/step auto-flow + per-stripe split ----
+  function buildShapes(p) {
+    var shapes = [];
+    var baseX = 0;
+    stripes.forEach(function (s) {
+      var x = baseX + (s.dx || 0);
+      var n = Math.max(1, Math.round(s.split || 1));
+      if (n <= 1) {
+        shapes.push({ x: x, y: s.y, w: p.stripeW, h: s.h, rx: p.rx });
+      } else {
+        var gap = s.splitGap || 0;
+        var partH = (s.h - (n - 1) * gap) / n;
+        for (var k = 0; k < n; k++) {
+          shapes.push({ x: x, y: s.y + k * (partH + gap), w: p.stripeW, h: partH, rx: p.rx });
+        }
+      }
+      baseX = x + p.stripeW + p.step;
+    });
+
+    var minY = 0, maxY = 0, maxX = 0;
+    shapes.forEach(function (s) {
+      if (s.y < minY) minY = s.y;
+      if (s.y + s.h > maxY) maxY = s.y + s.h;
+      if (s.x + s.w > maxX) maxX = s.x + s.w;
+    });
+
+    return { shapes: shapes, totalW: maxX, totalH: maxY - minY, minY: minY };
+  }
+
+  function svgNS(tag) { return document.createElementNS("http://www.w3.org/2000/svg", tag); }
+
+  function measureText(str, p) {
+    var tempSvg = svgNS("svg");
+    tempSvg.setAttribute("style", "position:absolute;left:-9999px;top:-9999px;visibility:hidden;");
+    var t = svgNS("text");
+    t.setAttribute("font-family", BRAND_FONT);
+    t.setAttribute("font-weight", p.textWeight);
+    t.setAttribute("font-size", p.textSize);
+    t.setAttribute("letter-spacing", (p.textSpacing * p.textSize).toFixed(2));
+    t.textContent = str;
+    tempSvg.appendChild(t);
+    document.body.appendChild(tempSvg);
+    var bbox = t.getBBox();
+    document.body.removeChild(tempSvg);
+    return bbox;
+  }
+
+  // ---- build one complete <svg> for a given color/bg treatment (shared by main + variants) ----
+  function buildSvgElement(built, textStr, textBBox, p, opts) {
+    var pad = 40;
+    var logoW = built.totalW * p.scale;
+    var logoH = built.totalH * p.scale;
+    var textW = textBBox ? textBBox.width : 0;
+    var textH = textBBox ? textBBox.height : 0;
+    var textBlockH = textStr ? (p.textGap + textH) : 0;
+
+    var contentW = Math.max(logoW, textW + Math.abs(p.textOffsetX) * 2);
+    var w = contentW + pad * 2;
+    var h = logoH + textBlockH + pad * 2;
+
+    var svg = svgNS("svg");
+    svg.setAttribute("width", w.toFixed(0));
+    svg.setAttribute("height", h.toFixed(0));
+    svg.setAttribute("viewBox", "0 0 " + w.toFixed(0) + " " + h.toFixed(0));
+
+    var bgRect = svgNS("rect");
+    bgRect.setAttribute("width", "100%");
+    bgRect.setAttribute("height", "100%");
+    bgRect.setAttribute("fill", opts.bg);
+    svg.appendChild(bgRect);
+
+    if (opts.showGrid) {
+      var gridColor = opts.gridColor;
+      // spacing (p.gridStep) and thickness (stroke-width 1) always stay fixed;
+      // dash pattern uses direct width/gap px values, not a computed parts-count
+      var dashArr = p.gridDashed ? (p.gridDashW + "," + p.gridDashGap) : null;
+      for (var gx = 0; gx <= w; gx += p.gridStep) {
+        var l = svgNS("line");
+        l.setAttribute("x1", gx); l.setAttribute("x2", gx);
+        l.setAttribute("y1", 0); l.setAttribute("y2", h);
+        l.setAttribute("stroke", gridColor); l.setAttribute("stroke-width", "1");
+        if (dashArr) l.setAttribute("stroke-dasharray", dashArr);
+        svg.appendChild(l);
+      }
+      for (var gy = 0; gy <= h; gy += p.gridStep) {
+        var l2 = svgNS("line");
+        l2.setAttribute("x1", 0); l2.setAttribute("x2", w);
+        l2.setAttribute("y1", gy); l2.setAttribute("y2", gy);
+        l2.setAttribute("stroke", gridColor); l2.setAttribute("stroke-width", "1");
+        if (dashArr) l2.setAttribute("stroke-dasharray", dashArr);
+        svg.appendChild(l2);
+      }
+    }
+
+    var fill = opts.fill;
+    if (opts.gradientStops) {
+      var defs = svgNS("defs");
+      var grad = svgNS("linearGradient");
+      grad.setAttribute("id", opts.gradId);
+      grad.setAttribute("x1", "0"); grad.setAttribute("x2", built.totalW.toFixed(0));
+      grad.setAttribute("y1", "0"); grad.setAttribute("y2", "0");
+      grad.setAttribute("gradientUnits", "userSpaceOnUse");
+      opts.gradientStops.forEach(function (s) {
+        var stop = svgNS("stop");
+        stop.setAttribute("offset", s[0]); stop.setAttribute("stop-color", s[1]);
+        grad.appendChild(stop);
+      });
+      defs.appendChild(grad);
+      svg.appendChild(defs);
+      fill = "url(#" + opts.gradId + ")";
+    }
+
+    var logoX = pad + (contentW - logoW) / 2;
+    var logoY = pad - built.minY * p.scale;
+    var g = svgNS("g");
+    g.setAttribute("transform", "translate(" + logoX.toFixed(2) + "," + logoY.toFixed(2) + ") scale(" + p.scale + ")");
+    built.shapes.forEach(function (s) {
+      var el = svgNS("rect");
+      el.setAttribute("x", s.x.toFixed(2));
+      el.setAttribute("y", s.y.toFixed(2));
+      el.setAttribute("width", s.w.toFixed(2));
+      el.setAttribute("height", s.h.toFixed(2));
+      el.setAttribute("rx", s.rx.toFixed(2));
+      el.setAttribute("fill", fill);
+      g.appendChild(el);
+    });
+    svg.appendChild(g);
+
+    if (textStr) {
+      var t = svgNS("text");
+      t.setAttribute("font-family", BRAND_FONT);
+      t.setAttribute("font-weight", p.textWeight);
+      t.setAttribute("font-size", p.textSize);
+      t.setAttribute("letter-spacing", (p.textSpacing * p.textSize).toFixed(2));
+      t.setAttribute("fill", opts.textColor);
+      t.textContent = textStr;
+      var textX = pad + (contentW - textW) / 2 - textBBox.x + p.textOffsetX;
+      var textY = pad + logoH + p.textGap - textBBox.y;
+      t.setAttribute("x", textX.toFixed(2));
+      t.setAttribute("y", textY.toFixed(2));
+      svg.appendChild(t);
+    }
+
+    return svg;
+  }
+
+  function colorOf(id, fallback) {
+    var el = document.getElementById(id);
+    return el ? el.value : fallback;
+  }
+
+  var lightSvgStr = "", bwSvgStr = "";
+
+  function render() {
+    var p = getParams();
+    var built = buildShapes(p);
+    var textStr = (p.textShow && p.text) ? (p.textCaps ? p.text.toUpperCase() : p.text) : "";
+    var textBBox = textStr ? measureText(textStr, p) : null;
+
+    // main (dark, editable, with calibration grid)
+    var mainSvg = buildSvgElement(built, textStr, textBBox, p, {
+      bg: p.darkBg ? "#0a0b0f" : "#f4f5fa",
+      fill: p.useGrad ? null : p.mono,
+      gradientStops: p.useGrad ? [[0, p.c1], [0.5, p.c2], [1, p.c3]] : null,
+      gradId: "vdGrad-main",
+      textColor: p.textColor,
+      showGrid: p.grid,
+      gridColor: p.darkBg ? "#1c3a1c" : "#c9d6c9"
+    });
+    canvasWrap.innerHTML = "";
+    canvasWrap.appendChild(mainSvg);
+    svgOut.value = new XMLSerializer().serializeToString(mainSvg);
+
+    // variant: light bg, solid ink fill (matches Paper token usage)
+    var lightBg = colorOf("p_lightBg", "#f4f5fa");
+    var lightFill = colorOf("p_lightFill", "#15161f");
+    var lightSvg = buildSvgElement(built, textStr, textBBox, p, {
+      bg: lightBg, fill: lightFill, gradientStops: null, textColor: lightFill, showGrid: false
+    });
+    canvasWrapLight.innerHTML = "";
+    canvasWrapLight.appendChild(lightSvg);
+    lightSvgStr = new XMLSerializer().serializeToString(lightSvg);
+
+    // variant: black & white (flat, print-safe)
+    var bwBg = colorOf("p_bwBg", "#ffffff");
+    var bwFill = colorOf("p_bwFill", "#0a0b0f");
+    var bwSvg = buildSvgElement(built, textStr, textBBox, p, {
+      bg: bwBg, fill: bwFill, gradientStops: null, textColor: bwFill, showGrid: false
+    });
+    canvasWrapBW.innerHTML = "";
+    canvasWrapBW.appendChild(bwSvg);
+    bwSvgStr = new XMLSerializer().serializeToString(bwSvg);
+  }
+
+  // ---- wire inputs ----
+  fields.forEach(function (k) {
+    var el = document.getElementById("p_" + k);
+    var elN = document.getElementById("p_" + k + "N");
+    if (!el) return;
+    el.addEventListener("input", function () {
+      if (elN) elN.value = el.value;
+      render();
+    });
+    if (elN) {
+      elN.addEventListener("input", function () {
+        el.value = elN.value;
+        render();
+      });
+    }
+  });
+
+  document.getElementById("btnAddShape").addEventListener("click", function () {
+    var last = stripes[stripes.length - 1];
+    stripes.push(last
+      ? { y: last.y, h: last.h, dx: 0, split: 1, splitGap: 0 }
+      : { y: 0, h: 58, dx: 0, split: 1, splitGap: 0 });
+    renderShapeRows();
+    render();
+  });
+
+  document.getElementById("btnReset").addEventListener("click", function () {
+    setParams(DEFAULTS);
+    resetStripes();
+    renderShapeRows();
+    render();
+  });
+  document.getElementById("btnCopy").addEventListener("click", function () {
+    svgOut.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    if (navigator.clipboard) navigator.clipboard.writeText(svgOut.value).catch(function () {});
+  });
+  document.getElementById("btnDownload").addEventListener("click", function () {
+    var blob = new Blob([svgOut.value], { type: "image/svg+xml" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "vdole-logo.svg";
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  function downloadSvgStr(str, filename) {
+    var blob = new Blob([str], { type: "image/svg+xml" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  ["p_lightBg", "p_lightFill", "p_bwBg", "p_bwFill"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("input", render);
+  });
+
+  document.getElementById("btnDlLight").addEventListener("click", function () {
+    downloadSvgStr(lightSvgStr, "vdole-logo-light.svg");
+  });
+  document.getElementById("btnDlBw").addEventListener("click", function () {
+    downloadSvgStr(bwSvgStr, "vdole-logo-bw.svg");
+  });
+
+  setParams(DEFAULTS);
+  resetStripes();
+  renderShapeRows();
+  render();
+})();
+</script>
+</body>
+</html>
