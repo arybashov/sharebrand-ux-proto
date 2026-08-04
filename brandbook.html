@@ -366,10 +366,16 @@
         </div>
         <div class="lk">
           <div class="fav">
-            <svg viewBox="0 0 470 200" aria-label="Знак-иконка vdole: буквы V и D">
-              <defs><linearGradient id="favSpec" x1="0" x2="470" y1="0" y2="0" gradientUnits="userSpaceOnUse">
+            <svg viewBox="0 0 100 100" aria-label="Знак-иконка vdole: 5 столбцов спектра разной высоты">
+              <defs><linearGradient id="favSpec" x1="0" x2="100" y1="0" y2="0" gradientUnits="userSpaceOnUse">
                 <stop stop-color="#ff5c8a"/><stop offset=".5" stop-color="#7c5cff"/><stop offset="1" stop-color="#25d0c0"/></linearGradient></defs>
-              <use href="#vdShape" fill="url(#favSpec)"/>
+              <g fill="url(#favSpec)">
+                <rect x="3"  y="32" width="14" height="36" rx="7"/>
+                <rect x="23" y="20" width="14" height="60" rx="7"/>
+                <rect x="43" y="8"  width="14" height="84" rx="7"/>
+                <rect x="63" y="20" width="14" height="60" rx="7"/>
+                <rect x="83" y="32" width="14" height="36" rx="7"/>
+              </g>
             </svg>
           </div>
           <span class="wm" style="color:var(--txt)">vdole</span>
